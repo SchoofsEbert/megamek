@@ -1,0 +1,21 @@
+@startuml
+
+abstract class TurnOrdered
+interface IPlayer
+interface Game
+class Player
+class PlayerColour
+class Minefield
+class Coords
+class Camouflage
+
+Player --|> TurnOrdered: extends
+Player --|> IPlayer: implements
+Player "1" --o "*" Minefield: visibleMinefields
+Player "1" -- "1" Game
+Player "1" --* "*" Coords: artyAutoHitHexes
+Player "1" -- "1" PlayerColour: colour
+Player "1" -- "1" Camouflage
+
+
+@enduml

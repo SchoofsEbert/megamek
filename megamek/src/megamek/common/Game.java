@@ -2770,7 +2770,7 @@ public class Game implements Serializable, IGame {
         gameReports.clear();
     }
 
-    public void end(int winner, int winnerTeam) {
+    public void end(int winner, int winnerTeam) { //TODO INTEREST
         setVictoryPlayerId(winner);
         setVictoryTeam(winnerTeam);
         processGameEvent(new GameEndEvent(this));
