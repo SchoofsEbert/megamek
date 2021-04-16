@@ -1,0 +1,28 @@
+@startuml
+interface Runnable
+class Server {
+    -class EntityTargetPair
+    -class PacketPump
+    -class ReceivedPacket
+    +Enum DamageType
+
+}
+Server --|> Runnable: implements
+Server --o Building: affectedBldgs
+Server --o ServerCommand: commandsHash
+Server --o ConnectionHandler: connectionHandlers
+Server --o IConnection: connectionIds, connections, connectionsPending
+Server --> ConnectionListener: ConnectionListenerAdapter, packetPumpThread
+Server --> EntityVerifier: entityVerifier
+Server --o  DemolitionCharge: explodingCharges
+Server --> IGame: game
+Server --o Coords: hexUpdateSet
+Server --> MapSettings: mapSettings
+Server --o PhysicalResult: physicalResults
+Server --> IPlayer: playerChangingTeam
+Server -> Server: serverInstance
+Server -> ServerSocker: serverSocket
+Server -> DynamicTerrainProcessor: terainProcessors
+Server --o Report: vPhaseReporte
+
+@enduml
