@@ -1,0 +1,27 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+note top of GameServer : "All ... methods which are not in Server"
+note "Commands should be split between Server and GameServer" as N1
+note "Die should be split between Server and GameServer" as N2
+GameServer .. N1
+N2 .. GameServer
+class GameServer {
+receive...()
+transmit...()
+create...()
+send...()
+handle...()
+registerCommand()
+getCommand()
+getAllCommandNames()
+processCommand()
+die()
+sendSpecialHexDisplayPackets()
+sendTagInfoUpdates()
+sendTagInfoReset()
+sendGhostSkipMessage()
+sendTurnErrorSkipMessage()
+}
+
+@enduml

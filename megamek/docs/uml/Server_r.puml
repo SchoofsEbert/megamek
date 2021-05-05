@@ -1,0 +1,36 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+note "Commands should be split between Server and GameServer" as N1
+note "Die should be split between Server and GameServer" as N2
+Server .. N1
+N2 .. Server
+class Server {
+class ReceivedPacket
+class PacketPump
+createMotd()
+isPassworded()
+isPassword()
+registerCommand()
+getCommand()
+getAllCommandNames()
+processCommand()
+die()
+greeting()
+getFreeConnectionID()
+getClient()
+getConnections()
+getConnection()
+getPedningConnection()
+sendChat()
+sendServerChat()
+send()
+sendToPending()
+run()
+getHost()
+getPort()
+getServerInstance()
+registerWithServerBrowser()
+}
+
+@enduml
