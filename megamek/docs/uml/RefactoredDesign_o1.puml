@@ -1,0 +1,9 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+Server <|-- GameServer: Extends
+GameServer <-- GameLogic
+GameServer <-- Reporter
+GameLogic <-- Game
+
+@enduml

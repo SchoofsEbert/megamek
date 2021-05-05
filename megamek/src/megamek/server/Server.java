@@ -311,7 +311,7 @@ public class Server implements Runnable {
     // canceling each other
     private Vector<PhysicalResult> physicalResults = new Vector<>();
 
-    private Vector<DynamicTerrainProcessor> terrainProcessors = new Vector<>();
+    private Vector<DynamicTerrainProcessor> terrainProcessors = new Vector<>(); //TODO INTER: only used in constructor and prepareForPhase
 
     private Timer watchdogTimer = new Timer("Watchdog Timer");
 
@@ -722,7 +722,7 @@ public class Server implements Runnable {
      */
     public int getFreeEntityId() {
         return game.getNextEntityId();
-    }
+    } //TODO INTER: ONLY GAME
 
     /**
      * Allow the player to set whatever parameters he is able to
@@ -730,7 +730,7 @@ public class Server implements Runnable {
     private void receivePlayerInfo(Packet packet, int connId) {
         IPlayer player = (IPlayer) packet.getObject(0);
         IPlayer gamePlayer = game.getPlayer(connId);
-        if (null != gamePlayer) {
+        if (null != gamePlayer) { //TODO INTER: ONLY GAME
             gamePlayer.setColour(player.getColour());
             gamePlayer.setStartingPos(player.getStartingPos());
             gamePlayer.setTeam(player.getTeam());
@@ -1716,7 +1716,7 @@ public class Server implements Runnable {
     /**
      * Called at the beginning of certain phases to make every player not ready.
      */
-    private void resetPlayersDone() {
+    private void resetPlayersDone() { //TODO INTER: ONLY GAME
         if (isReportingPhase()) {
             return;
         }
@@ -1731,7 +1731,7 @@ public class Server implements Runnable {
      * Called at the beginning of certain phases to make every active player not
      * ready.
      */
-    private void resetActivePlayersDone() {
+    private void resetActivePlayersDone() { //TODO INTER: ONLY GAME
         /*
          * if (isReportingPhase()) { return; }
          */
@@ -3999,7 +3999,7 @@ public class Server implements Runnable {
         }
     }
 
-    private void applyDropShipLandingDamage(Coords centralPos, Entity killer) {
+    private void applyDropShipLandingDamage(Coords centralPos, Entity killer) { //TODO LIKE THIS STUF SHOULD BE REMOVED
         // first cycle through hexes to figure out final elevation
         IHex centralHex = game.getBoard().getHex(centralPos);
         if (null == centralHex) {
@@ -28285,7 +28285,7 @@ public class Server implements Runnable {
      *            Flag that determines whether this is a fall into a basement or
      *            not.
      */
-    private Vector<Report> doEntityFall(Entity entity, Coords fallPos, int fallHeight, int facing,
+    private Vector<Report> doEntityFall(Entity entity, Coords fallPos, int fallHeight, int facing, //TODO: INTER FUNCTION ONLY USES GAME FIELD, CAN THUS EASILY BE REFACTORED
                                         PilotingRollData roll, boolean intoBasement, boolean fromCliff) {
         entity.setFallen(true);
 
@@ -32189,7 +32189,7 @@ public class Server implements Runnable {
      *            - The <code>Coords></code> of the building basement hex that
      *            has collapsed
      */
-    public void collapseBasement(Building bldg, Hashtable<Coords, Vector<Entity>> positionMap,
+    public void collapseBasement(Building bldg, Hashtable<Coords, Vector<Entity>> positionMap, //TODO: INTER FUNCTION ONLY USES GAME FIELD, CAN THUS EASILY BE REFACTORED
                                  Coords coords, Vector<Report> vPhaseReport) {
         if (!bldg.hasCFIn(coords)) {
             return;
@@ -35705,4 +35705,5 @@ public class Server implements Runnable {
     public Set<Coords> getHexUpdateSet() {
         return hexUpdateSet;
     }
+
 }
