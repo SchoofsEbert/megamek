@@ -4,6 +4,7 @@ import junit.framework.TestCase;
 import megamek.MegaMek;
 import megamek.common.*;
 import megamek.common.logging.DefaultMmLogger;
+import megamek.common.logging.FakeLogger;
 import megamek.common.logging.MMLogger;
 import megamek.common.net.Packet;
 import megamek.common.options.GameOptions;
@@ -21,6 +22,7 @@ public class ServerTest extends TestCase {
     Game game;
     BipedMech entity;
     Player player;
+    MMLogger logger;
 
     @Override
     public void setUp() throws Exception {
@@ -31,6 +33,11 @@ public class ServerTest extends TestCase {
         player = new Player(0, "JohnDoe");
         game.addEntity(entity);
         game.addPlayer(0, player);
+
+
+
+        logger = Mockito.mock(FakeLogger.class);
+        MegaMek.setLogger(logger);
     }
 
     @Override
@@ -45,11 +52,18 @@ public class ServerTest extends TestCase {
         assertEquals(game, server.getGame());
     }
 
+    public void testGetPlayer() {
+        server.setGame(game);
+        assertEquals(server.getPlayer(0), player);
+    }
+
     public void testReceivePlayerVersion() {
         server.setGame(game);
         Object[] versionData = new Object[2];
         versionData[0] = MegaMek.VERSION;
         versionData[1] = MegaMek.getMegaMekSHA256();
         server.handle(0,new Packet(Packet.COMMAND_CLIENT_VERSIONS, versionData));
+        Mockito.verify(logger, Mockito.times(1)).info("SUCCESS: Client/Server Version (" + MegaMek.VERSION + ") and Checksum ("
+                + MegaMek.getMegaMekSHA256() + ") matched");
     }
 }
