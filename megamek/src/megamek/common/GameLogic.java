@@ -11,6 +11,11 @@ public class GameLogic {
 
     private IGame game = new Game();
 
+    public GameLogic() {
+        game.getOptions().initialize();
+        game.getOptions().loadOptions();
+    }
+
     /**
      * Sets the game for this server. Restores any transient fields, and sets
      * all players as ghosts. This should only be called during server
