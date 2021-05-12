@@ -3,11 +3,15 @@ package megamek.server;
 import megamek.MegaMek;
 import megamek.common.*;
 import megamek.common.event.GameListener;
+import megamek.common.net.IConnection;
 import megamek.common.net.Packet;
+import megamek.common.preference.PreferenceManager;
 import megamek.common.weapons.AttackHandler;
 import megamek.common.weapons.WeaponHandler;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class GameServer extends ServerRefactored{
@@ -52,7 +56,7 @@ public class GameServer extends ServerRefactored{
     }
 
     //TODO once refactored, should be set to private
-    public void receivePlayerVersion(Packet packet, int connId) {
+    void receivePlayerVersion(Packet packet, int connId) {
         String version = (String) packet.getObject(0);
         String clientChecksum = (String) packet.getObject(1);
         String serverChecksum = MegaMek.getMegaMekSHA256();
@@ -108,6 +112,108 @@ public class GameServer extends ServerRefactored{
             MegaMek.getLogger().info("SUCCESS: Client/Server Version (" + version + ") and Checksum ("
                     + clientChecksum + ") matched");
         }
+    }
+
+    /**
+     * Receives a player name, sent from a pending connection, and connects that
+     * connection.
+     */
+    //TODO once refactored, should be set to private
+    void receivePlayerName(Packet packet, int connId) {
+        final IConnection conn = server.getPendingConnection(connId);
+        String name = (String) packet.getObject(0);
+        boolean returning = false;
+
+        // this had better be from a pending connection
+        if (conn == null) {
+            MegaMek.getLogger().warning("Got a client name from a non-pending connection");
+            return;
+        }
+
+        // check if they're connecting with the same name as a ghost player
+        for (Enumeration<IPlayer> i = gamelogic.getGame().getPlayers(); i.hasMoreElements(); ) {
+            IPlayer player = i.nextElement();
+            if (player.getName().equals(name)) {
+                if (player.isGhost()) {
+                    returning = true;
+                    player.setGhost(false);
+                    // switch id
+                    connId = player.getId();
+                    conn.setId(connId);
+                }
+            }
+        }
+
+        if (!returning) {
+            // Check to avoid duplicate names...
+            name = server.correctDupeName(name);
+            server.sendToPending(connId, new Packet(Packet.COMMAND_SERVER_CORRECT_NAME, name));
+        }
+
+        // right, switch the connection into the "active" bin
+        server.connectionsPending.removeElement(conn);
+        server.connections.addElement(conn);
+        server.connectionIds.put(conn.getId(), conn);
+
+        // add and validate the player info
+        if (!returning) {
+            server.addNewPlayer(connId, name);
+        }
+
+        // if it is not the lounge phase, this player becomes an observer
+        IPlayer player = getPlayer(connId);
+        if ( (gamelogic.getGame().getPhase() != IGame.Phase.PHASE_LOUNGE) && (null != player)
+                &&  (gamelogic.getGame().getEntitiesOwnedBy(player) < 1)) {
+            player.setObserver(true);
+        }
+
+        // send the player the motd
+        server.sendServerChat(connId, server.motd);
+
+        // send info that the player has connected
+        server.send(server.createPlayerConnectPacket(connId));
+
+        // tell them their local playerId
+        server.send(connId, new Packet(Packet.COMMAND_LOCAL_PN, connId));
+
+        // send current gameserver.getGame() info
+        server.sendCurrentInfo(connId);
+
+        final boolean showIPAddressesInChat = PreferenceManager.getClientPreferences().getShowIPAddressesInChat();
+
+        try {
+            InetAddress[] addresses = InetAddress.getAllByName(InetAddress
+                    .getLocalHost().getHostName());
+            for (InetAddress address : addresses) {
+                MegaMek.getLogger().info("s: machine IP " + address.getHostAddress());
+                if (showIPAddressesInChat) {
+                    server.sendServerChat(connId,
+                            "Machine IP is " + address.getHostAddress());
+                }
+            }
+        } catch (UnknownHostException e) {
+            // oh well.
+        }
+
+        MegaMek.getLogger().info("s: listening on port " + server.serverSocket.getLocalPort());
+        if (showIPAddressesInChat) {
+            // Send the port we're listening on. Only useful for the player
+            // on the server machine to check.
+            server.sendServerChat(connId,
+                    "Listening on port " + server.serverSocket.getLocalPort());
+        }
+
+        // Get the player *again*, because they may have disconnected.
+        player = getPlayer(connId);
+        if (null != player) {
+            String who = player.getName() + " connected from " + server.getClient(connId).getInetAddress();
+            MegaMek.getLogger().info("s: player #" + connId + ", " + who);
+            if (showIPAddressesInChat) {
+                server.sendServerChat(who);
+            }
+
+        } // Found the player
+
     }
 
 

@@ -224,9 +224,9 @@ public class Server implements Runnable {
 
     private final String metaServerUrl;
 
-    private ServerSocket serverSocket;
+    ServerSocket serverSocket;
 
-    private String motd;
+    String motd;
 
     private static class ReceivedPacket {
         public int connId;
@@ -273,7 +273,7 @@ public class Server implements Runnable {
 
     }
 
-    private Vector<IConnection> connections = new Vector<>(4);
+    Vector<IConnection> connections = new Vector<>(4);
 
     private Hashtable<Integer, ConnectionHandler> connectionHandlers = new Hashtable<>();
 
@@ -284,9 +284,9 @@ public class Server implements Runnable {
      */
     private final ConcurrentLinkedQueue<ReceivedPacket> cfrPacketQueue = new ConcurrentLinkedQueue<>();
 
-    private Vector<IConnection> connectionsPending = new Vector<>(4);
+    Vector<IConnection> connectionsPending = new Vector<>(4);
 
-    private Hashtable<Integer, IConnection> connectionIds = new Hashtable<>();
+    Hashtable<Integer, IConnection> connectionIds = new Hashtable<>();
 
     private int connectionCounter;
 
@@ -718,7 +718,7 @@ public class Server implements Runnable {
      * @param oldName the <code>String</code> old player name, that is a duplicate
      * @return the <code>String</code> new player name
      */
-    private String correctDupeName(String oldName) {
+    String correctDupeName(String oldName) {
         for (Enumeration<IPlayer> i = gameserver.getGame().getPlayers(); i.hasMoreElements(); ) {
             IPlayer player = i.nextElement();
             if (player.getName().equals(oldName)) {
@@ -750,99 +750,7 @@ public class Server implements Runnable {
      * connection.
      */
     private void receivePlayerName(Packet packet, int connId) {
-        final IConnection conn = getPendingConnection(connId);
-        String name = (String) packet.getObject(0);
-        boolean returning = false;
-
-        // this had better be from a pending connection
-        if (conn == null) {
-            MegaMek.getLogger().warning("Got a client name from a non-pending connection");
-            return;
-        }
-
-        // check if they're connecting with the same name as a ghost player
-        for (Enumeration<IPlayer> i = gameserver.getGame().getPlayers(); i.hasMoreElements(); ) {
-            IPlayer player = i.nextElement();
-            if (player.getName().equals(name)) {
-                if (player.isGhost()) {
-                    returning = true;
-                    player.setGhost(false);
-                    // switch id
-                    connId = player.getId();
-                    conn.setId(connId);
-                }
-            }
-        }
-
-        if (!returning) {
-            // Check to avoid duplicate names...
-            name = correctDupeName(name);
-            sendToPending(connId, new Packet(Packet.COMMAND_SERVER_CORRECT_NAME, name));
-        }
-
-        // right, switch the connection into the "active" bin
-        connectionsPending.removeElement(conn);
-        connections.addElement(conn);
-        connectionIds.put(conn.getId(), conn);
-
-        // add and validate the player info
-        if (!returning) {
-            addNewPlayer(connId, name);
-        }
-
-        // if it is not the lounge phase, this player becomes an observer
-        IPlayer player = getPlayer(connId);
-        if ( (gameserver.getGame().getPhase() != IGame.Phase.PHASE_LOUNGE) && (null != player)
-            &&  (gameserver.getGame().getEntitiesOwnedBy(player) < 1)) {
-            player.setObserver(true);
-        }
-
-        // send the player the motd
-        sendServerChat(connId, motd);
-
-        // send info that the player has connected
-        send(createPlayerConnectPacket(connId));
-
-        // tell them their local playerId
-        send(connId, new Packet(Packet.COMMAND_LOCAL_PN, connId));
-
-        // send current gameserver.getGame() info
-        sendCurrentInfo(connId);
-
-        final boolean showIPAddressesInChat = PreferenceManager.getClientPreferences().getShowIPAddressesInChat();
-
-        try {
-            InetAddress[] addresses = InetAddress.getAllByName(InetAddress
-                    .getLocalHost().getHostName());
-            for (InetAddress address : addresses) {
-                MegaMek.getLogger().info("s: machine IP " + address.getHostAddress());
-                if (showIPAddressesInChat) {
-                    sendServerChat(connId,
-                            "Machine IP is " + address.getHostAddress());
-                }
-            }
-        } catch (UnknownHostException e) {
-            // oh well.
-        }
-
-        MegaMek.getLogger().info("s: listening on port " + serverSocket.getLocalPort());
-        if (showIPAddressesInChat) {
-            // Send the port we're listening on. Only useful for the player
-            // on the server machine to check.
-            sendServerChat(connId,
-                        "Listening on port " + serverSocket.getLocalPort());
-        }
-
-        // Get the player *again*, because they may have disconnected.
-        player = getPlayer(connId);
-        if (null != player) {
-            String who = player.getName() + " connected from " + getClient(connId).getInetAddress();
-            MegaMek.getLogger().info("s: player #" + connId + ", " + who);
-            if (showIPAddressesInChat) {
-                sendServerChat(who);
-            }
-
-        } // Found the player
+        gameserver.receivePlayerName(packet, connId);
 
     }
 
@@ -925,9 +833,9 @@ public class Server implements Runnable {
     }
 
     /**
-     * Adds a new player to the gameserver.getGame()
+     * Adds a new player to the game
      */
-    private IPlayer addNewPlayer(int connId, String name) { //TODO INTEREST
+    IPlayer addNewPlayer(int connId, String name) { //TODO INTEREST
         int team = IPlayer.TEAM_UNASSIGNED;
         if  (gameserver.getGame().getPhase() == Phase.PHASE_LOUNGE) {
             team = IPlayer.TEAM_NONE;
@@ -1382,7 +1290,7 @@ public class Server implements Runnable {
     /**
      * a shorter name for getConnection()
      */
-    private IConnection getClient(int connId) {
+    IConnection getClient(int connId) {
         return getConnection(connId);
     }
 
@@ -30584,7 +30492,7 @@ public class Server implements Runnable {
     /**
      * Creates a packet informing that the player has connected
      */
-    private Packet createPlayerConnectPacket(int playerId) { //TODO INTEREST
+    Packet createPlayerConnectPacket(int playerId) { //TODO INTEREST
         final Object[] data = new Object[2];
         data[0] = playerId;
         data[1] = getPlayer(playerId);
@@ -31045,7 +30953,7 @@ public class Server implements Runnable {
     /**
      * Send a packet to all connected clients.
      */
-    private void send(Packet packet) {
+    void send(Packet packet) {
         if (connections == null) {
             return;
         }
@@ -31103,7 +31011,7 @@ public class Server implements Runnable {
     /**
      * Send a packet to a pending connection
      */
-    private void sendToPending(int connId, Packet packet) {
+    void sendToPending(int connId, Packet packet) {
         IConnection pendingConn = getPendingConnection(connId);
         if (pendingConn != null) {
             pendingConn.send(packet);
