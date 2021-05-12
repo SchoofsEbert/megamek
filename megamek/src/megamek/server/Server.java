@@ -173,6 +173,13 @@ import megamek.server.victory.VictoryResult;
  * @author Ben Mazur
  */
 public class Server implements Runnable {
+
+
+    /////////TODO GameServer, GameLocig and Reporter objects needed to refactor/////////
+    private GameServer gameserver;
+    private GameLogic gamelogic;
+    private Reporter reporter;
+
     private static class EntityTargetPair {
         Entity ent;
 
@@ -426,6 +433,8 @@ public class Server implements Runnable {
      */
     public Server(String password, int port, boolean registerWithServerBrowser,
                   String metaServerUrl) throws IOException {
+
+        /////////TODO Constructor should be split between ServerRefactored and GameServer/////////
         this.metaServerUrl = metaServerUrl;
         this.password = password.length() > 0 ? password : null;
         // initialize server socket
@@ -527,6 +536,11 @@ public class Server implements Runnable {
         connector.start();
 
         serverInstance = this;
+
+        /////////TODO End original Server constructor/////////
+        gameserver = new GameServer(password, port, registerWithServerBrowser, metaServerUrl);
+        gamelogic = new GameLogic();
+        reporter = new Reporter();
     }
 
     /**
@@ -535,61 +549,14 @@ public class Server implements Runnable {
      * initialization before any players have connected.
      */
     public void setGame(IGame g) {
-        // game listeners are transient so we need to save and restore them
-        Vector<GameListener> gameListenersClone = new Vector<>(getGame().getGameListeners());
-
-        game = g;
-
-        for (GameListener listener : gameListenersClone) {
-            getGame().addGameListener(listener);
-        }
-
-        List<Integer> orphanEntities = new ArrayList<>();
-
-        // reattach the transient fields and ghost the players
-        for (Iterator<Entity> e = game.getEntities(); e.hasNext(); ) {
-            Entity ent = e.next();
-            ent.setGame(game);
-
-            if(ent.getOwner() == null) {
-                orphanEntities.add(ent.getId());
-                continue;
-            }
-
-            if (ent instanceof Mech) {
-                ((Mech) ent).setBAGrabBars();
-                ((Mech) ent).setProtomechClampMounts();
-            }
-            if (ent instanceof Tank) {
-                ((Tank) ent).setBAGrabBars();
-            }
-        }
-
-        game.removeEntities(orphanEntities, IEntityRemovalConditions.REMOVE_UNKNOWN);
-
-        game.setOutOfGameEntitiesVector(game.getOutOfGameEntitiesVector());
-        for (Enumeration<IPlayer> e = game.getPlayers(); e.hasMoreElements(); ) {
-            IPlayer p = e.nextElement();
-            p.setGame(game);
-            p.setGhost(true);
-        }
-        // might need to restore weapon type for some attacks that take multiple
-        // turns (like artillery)
-        for (Enumeration<AttackHandler> a = game.getAttacks(); a
-                .hasMoreElements(); ) {
-            AttackHandler handler = a.nextElement();
-            if (handler instanceof WeaponHandler) {
-                ((WeaponHandler) handler).restore();
-            }
-        }
-
+        gamelogic.setGame(g);
     }
 
     /**
      * Returns the current game object
      */
     public IGame getGame() {
-        return game;
+        return gamelogic.getGame();
     }
 
     /**
@@ -597,6 +564,7 @@ public class Server implements Runnable {
      * it was found, the build timestamp
      */
     private String createMotd() {
+        //TODO moved to gameserver
         StringBuilder motd = new StringBuilder();
         motd.append("Welcome to MegaMek.  Server is running version ").append(MegaMek.VERSION)
                 .append(", build date ");
