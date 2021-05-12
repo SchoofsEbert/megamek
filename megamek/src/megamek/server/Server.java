@@ -750,6 +750,8 @@ public class Server implements Runnable {
      * connection.
      */
     private void receivePlayerName(Packet packet, int connId) {
+
+        System.out.println("HE?");
         gameserver.receivePlayerName(packet, connId);
 
     }
@@ -31073,6 +31075,8 @@ public class Server implements Runnable {
         IPlayer player = gameserver.getGame().getPlayer(connId);
         // Check player. Please note, the connection may be pending.
         if ((null == player) && (null == getPendingConnection(connId))) {
+
+            System.out.println("SUP?");
             MegaMek.getLogger().error("Server does not recognize player at connection " + connId);
             return;
         }

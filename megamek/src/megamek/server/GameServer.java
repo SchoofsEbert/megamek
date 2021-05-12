@@ -124,8 +124,11 @@ public class GameServer extends ServerRefactored{
         String name = (String) packet.getObject(0);
         boolean returning = false;
 
+        System.out.println("THIS?");
         // this had better be from a pending connection
         if (conn == null) {
+
+            System.out.println("GAST");
             MegaMek.getLogger().warning("Got a client name from a non-pending connection");
             return;
         }
@@ -135,6 +138,8 @@ public class GameServer extends ServerRefactored{
             IPlayer player = i.nextElement();
             if (player.getName().equals(name)) {
                 if (player.isGhost()) {
+
+                    System.out.println("NOPE");
                     returning = true;
                     player.setGhost(false);
                     // switch id
@@ -157,6 +162,7 @@ public class GameServer extends ServerRefactored{
 
         // add and validate the player info
         if (!returning) {
+            System.out.println("FWAT?");
             server.addNewPlayer(connId, name);
         }
 

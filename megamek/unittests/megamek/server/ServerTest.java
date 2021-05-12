@@ -17,7 +17,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -50,6 +52,7 @@ public class ServerTest extends TestCase {
         server.die();
     }
 
+    //Moved to GameLogic
     public void testSetGame() {
         server.setGame(game);
         assertEquals(game, entity.getGame());
@@ -57,11 +60,13 @@ public class ServerTest extends TestCase {
         assertEquals(game, server.getGame());
     }
 
+    //Stayed in Server, should be deleted later
     public void testGetPlayer() {
         server.setGame(game);
         assertEquals(server.getPlayer(0), player);
     }
 
+    //Moved to GameServer
     public void testReceivePlayerVersion() {
         server.setGame(game);
         Object[] versionData = new Object[2];
@@ -72,7 +77,8 @@ public class ServerTest extends TestCase {
                 + MegaMek.getMegaMekSHA256() + ") matched");
     }
 
-    public void testReceivePlayerName() throws NoSuchFieldException, IllegalAccessException {
+    //Moved to GameServer
+    public void testReceivePlayerNameExisting() throws NoSuchFieldException, IllegalAccessException {
         server.setGame(game);
         Field connectionsPending = Server.class.getDeclaredField("connectionsPending");
         connectionsPending.setAccessible(true);
@@ -92,7 +98,61 @@ public class ServerTest extends TestCase {
         Mockito.verify(logger, Mockito.times(1)).info("s: listening on port " + server.getPort());
         String who = player.getName() + " connected from " + connection.getInetAddress();
         Mockito.verify(logger, Mockito.times(1)).info("s: player #" + 0 + ", " + who);
-
-
     }
+
+    //Moved to GameServer
+    public void testReceivePlayerNameNew() throws NoSuchFieldException, IllegalAccessException, UnknownHostException {
+        server.setGame(game);
+
+        Field connectionsPending = Server.class.getDeclaredField("connectionsPending");
+        connectionsPending.setAccessible(true);
+        Socket s = new Socket();
+        IConnection connection = Mockito.mock(ConnectionFactory.getInstance().createServerConnection(s, 1).getClass());
+        Mockito.when(connection.getId()).thenReturn(1);
+        Vector<IConnection> connectionspending = new Vector<>(4);
+        connectionspending.addElement(connection);
+        connectionsPending.set(server, connectionspending);
+
+        server.handle(1,new Packet(Packet.COMMAND_CLIENT_NAME, "NewPlayer"));
+        assertNull(server.getPendingConnection(1));
+        IPlayer newplayer = server.getPlayer(1);
+        assertFalse(newplayer.isGhost());
+        assertEquals(server.getConnection(1), connection);
+        Mockito.verify(logger, Mockito.times(1)).info("s: listening on port " + server.getPort());
+        Mockito.verify(logger, Mockito.times(1)).info("s: listening on port " + server.getPort());
+        InetAddress[] addresses = InetAddress.getAllByName(InetAddress.getLocalHost().getHostName());
+        for (InetAddress address : addresses) {
+            Mockito.verify(logger, Mockito.times(1)).info("s: machine IP " + address.getHostAddress());
+        }
+        String who = newplayer.getName() + " connected from " + connection.getInetAddress();
+        Mockito.verify(logger, Mockito.times(1)).info("s: player #" + 1 + ", " + who);
+    }
+
+    /*public void testReceivePlayerInfo() throws NoSuchFieldException, IllegalAccessException {
+        server.setGame(game);
+
+        Field connectionsPending = Server.class.getDeclaredField("connectionsPending");
+        connectionsPending.setAccessible(true);
+        Socket s = new Socket();
+        IConnection connection = Mockito.mock(ConnectionFactory.getInstance().createServerConnection(s, 1).getClass());
+        Vector<IConnection> connectionspending = new Vector<>(4);
+        connectionspending.addElement(connection);
+        connectionsPending.set(server, connectionspending);
+
+        server.handle(1,new Packet(Packet.COMMAND_CLIENT_NAME, "NewPlayer"));
+        server.handle(1,new Packet(Packet.COMMAND_PLAYER_UPDATE, player));
+
+        IPlayer gameplayer = server.getPlayer(1);
+        assertEquals(gameplayer.getColour(), player.getColour());
+        assertEquals(gameplayer.getStartingPos(), player.getStartingPos());
+        assertEquals(gameplayer.getTeam(), player.getTeam());
+        assertEquals(gameplayer.getCamoCategory(), player.getCamoCategory());
+        assertEquals(gameplayer.getCamoFileName(), player.getCamoFileName());
+        assertEquals(gameplayer.getNbrMFConventional(), player.getNbrMFConventional());
+        assertEquals(gameplayer.getNbrMFCommand(), player.getNbrMFCommand());
+        assertEquals(gameplayer.getNbrMFVibra(), player.getNbrMFVibra());
+        assertEquals(gameplayer.getNbrMFActive(), player.getNbrMFActive());
+        assertEquals(gameplayer.getNbrMFInferno(), player.getNbrMFInferno());
+        assertEquals(gameplayer.getConstantInitBonus(), player.getConstantInitBonus());
+    }*/
 }
