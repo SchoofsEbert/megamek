@@ -194,4 +194,9 @@ public interface IPlayer extends ITurnOrdered {
     boolean equals(Object obj);
     
     int hashCode();
+
+    /**
+     * Update a player to parameters of passed player
+     */
+    void update(IPlayer player);
 }

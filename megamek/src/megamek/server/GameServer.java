@@ -222,6 +222,25 @@ public class GameServer extends ServerRefactored{
 
     }
 
+    /**
+     * Allow the player to set whatever parameters he is able to
+     */
+    //TODO once refactored, should be set to private
+    void receivePlayerInfo(Packet packet, int connId) {
+        IPlayer player = (IPlayer) packet.getObject(0);
+        IPlayer gamePlayer = gamelogic.getGame().getPlayer(connId);
+        if (null != gamePlayer) { //TODO INTER: ONLY GAME
+            if (gamePlayer.getConstantInitBonus()
+                != player.getConstantInitBonus()) {
+            server.sendServerChat("Player " + gamePlayer.getName()
+                    + " changed their initiative bonus from "
+                    + gamePlayer.getConstantInitBonus()
+                    + " to " + player.getConstantInitBonus() + ".");
+            }
+            gamePlayer.update(player);
+        }
+    }
+
 
 
 

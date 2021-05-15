@@ -3,6 +3,7 @@ package megamek.server;
 import junit.framework.TestCase;
 import megamek.MegaMek;
 import megamek.client.ui.swing.boardview.FieldofFireSprite;
+import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.*;
 import megamek.common.logging.DefaultMmLogger;
 import megamek.common.logging.FakeLogger;
@@ -114,6 +115,7 @@ public class ServerTest extends TestCase {
         connectionsPending.set(server, connectionspending);
 
         server.handle(1,new Packet(Packet.COMMAND_CLIENT_NAME, "NewPlayer"));
+
         assertNull(server.getPendingConnection(1));
         IPlayer newplayer = server.getPlayer(1);
         assertFalse(newplayer.isGhost());
@@ -128,21 +130,23 @@ public class ServerTest extends TestCase {
         Mockito.verify(logger, Mockito.times(1)).info("s: player #" + 1 + ", " + who);
     }
 
-    /*public void testReceivePlayerInfo() throws NoSuchFieldException, IllegalAccessException {
+    public void testReceivePlayerInfo() throws NoSuchFieldException, IllegalAccessException {
         server.setGame(game);
 
-        Field connectionsPending = Server.class.getDeclaredField("connectionsPending");
-        connectionsPending.setAccessible(true);
-        Socket s = new Socket();
-        IConnection connection = Mockito.mock(ConnectionFactory.getInstance().createServerConnection(s, 1).getClass());
-        Vector<IConnection> connectionspending = new Vector<>(4);
-        connectionspending.addElement(connection);
-        connectionsPending.set(server, connectionspending);
+        player.setColour(PlayerColour.BROWN);
+        player.setStartingPos(5);
+        player.setTeam(3);
+        player.setCamoCategory("cat");
+        player.setCamoFileName("cat.file");
+        player.setNbrMFCommand(1);
+        player.setNbrMFVibra(1);
+        player.setNbrMFActive(1);
+        player.setNbrMFInferno(1);
+        player.setConstantInitBonus(10);
 
-        server.handle(1,new Packet(Packet.COMMAND_CLIENT_NAME, "NewPlayer"));
-        server.handle(1,new Packet(Packet.COMMAND_PLAYER_UPDATE, player));
+        server.handle(0,new Packet(Packet.COMMAND_PLAYER_UPDATE, player));
 
-        IPlayer gameplayer = server.getPlayer(1);
+        IPlayer gameplayer = server.getPlayer(0);
         assertEquals(gameplayer.getColour(), player.getColour());
         assertEquals(gameplayer.getStartingPos(), player.getStartingPos());
         assertEquals(gameplayer.getTeam(), player.getTeam());
@@ -154,5 +158,5 @@ public class ServerTest extends TestCase {
         assertEquals(gameplayer.getNbrMFActive(), player.getNbrMFActive());
         assertEquals(gameplayer.getNbrMFInferno(), player.getNbrMFInferno());
         assertEquals(gameplayer.getConstantInitBonus(), player.getConstantInitBonus());
-    }*/
+    }
 }

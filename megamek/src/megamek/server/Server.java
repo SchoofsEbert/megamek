@@ -688,28 +688,7 @@ public class Server implements Runnable {
      * Allow the player to set whatever parameters he is able to
      */
     private void receivePlayerInfo(Packet packet, int connId) {
-        IPlayer player = (IPlayer) packet.getObject(0);
-        IPlayer gamePlayer = gameserver.getGame().getPlayer(connId);
-        if (null != gamePlayer) { //TODO INTER: ONLY GAME
-            gamePlayer.setColour(player.getColour());
-            gamePlayer.setStartingPos(player.getStartingPos());
-            gamePlayer.setTeam(player.getTeam());
-            gamePlayer.setCamoCategory(player.getCamoCategory());
-            gamePlayer.setCamoFileName(player.getCamoFileName());
-            gamePlayer.setNbrMFConventional(player.getNbrMFConventional());
-            gamePlayer.setNbrMFCommand(player.getNbrMFCommand());
-            gamePlayer.setNbrMFVibra(player.getNbrMFVibra());
-            gamePlayer.setNbrMFActive(player.getNbrMFActive());
-            gamePlayer.setNbrMFInferno(player.getNbrMFInferno());
-            if (gamePlayer.getConstantInitBonus()
-                != player.getConstantInitBonus()) {
-                sendServerChat("Player " + gamePlayer.getName()
-                               + " changed their initiative bonus from "
-                               + gamePlayer.getConstantInitBonus()
-                               + " to " + player.getConstantInitBonus() + ".");
-            }
-            gamePlayer.setConstantInitBonus(player.getConstantInitBonus());
-        }
+        gameserver.receivePlayerInfo(packet, connId);
     }
 
     /**

@@ -585,4 +585,19 @@ public final class Player extends TurnOrdered implements IPlayer {
     public String toString() {
         return "Player " + getId() + " (" + getName() + ")";
     }
+
+    @Override
+    public void update(IPlayer player) {
+        setColour(player.getColour());
+        setStartingPos(player.getStartingPos());
+        setTeam(player.getTeam());
+        setCamoCategory(player.getCamoCategory());
+        setCamoFileName(player.getCamoFileName());
+        setNbrMFConventional(player.getNbrMFConventional());
+        setNbrMFCommand(player.getNbrMFCommand());
+        setNbrMFVibra(player.getNbrMFVibra());
+        setNbrMFActive(player.getNbrMFActive());
+        setNbrMFInferno(player.getNbrMFInferno());
+        setConstantInitBonus(player.getConstantInitBonus());
+    }
 }
