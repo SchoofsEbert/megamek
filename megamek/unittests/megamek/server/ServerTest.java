@@ -5,6 +5,7 @@ import megamek.MegaMek;
 import megamek.client.ui.swing.boardview.FieldofFireSprite;
 import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.*;
+import megamek.common.icons.Camouflage;
 import megamek.common.logging.DefaultMmLogger;
 import megamek.common.logging.FakeLogger;
 import megamek.common.logging.MMLogger;
@@ -128,6 +129,9 @@ public class ServerTest extends TestCase {
         }
         String who = newplayer.getName() + " connected from " + connection.getInetAddress();
         Mockito.verify(logger, Mockito.times(1)).info("s: player #" + 1 + ", " + who);
+
+        assertEquals(newplayer.getColour(), PlayerColour.RED);
+        assertEquals(newplayer.getCamoCategory(), Camouflage.COLOUR_CAMOUFLAGE);
     }
 
     public void testReceivePlayerInfo() throws NoSuchFieldException, IllegalAccessException {

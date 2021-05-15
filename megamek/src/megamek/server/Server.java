@@ -817,70 +817,14 @@ public class Server implements Runnable {
      * Adds a new player to the game
      */
     IPlayer addNewPlayer(int connId, String name) { //TODO INTEREST
-        int team = IPlayer.TEAM_UNASSIGNED;
-        if  (gameserver.getGame().getPhase() == Phase.PHASE_LOUNGE) {
-            team = IPlayer.TEAM_NONE;
-            for (IPlayer p : gameserver.getGame().getPlayersVector()) {
-                if (p.getTeam() > team) {
-                    team = p.getTeam();
-                }
-            }
-            team++;
-        }
-        IPlayer newPlayer = new Player(connId, name);
-        PlayerColour colour = newPlayer.getColour();
-        Enumeration<IPlayer> players = gameserver.getGame().getPlayers();
-        final PlayerColour[] colours = PlayerColour.values();
-        while (players.hasMoreElements()) {
-            final IPlayer p = players.nextElement();
-            if (p.getId() == newPlayer.getId()) {
-                continue;
-            }
-
-            if ((p.getColour() == colour) && (colours.length > (colour.ordinal() + 1))) {
-                colour = colours[colour.ordinal() + 1];
-            }
-        }
-        newPlayer.setColour(colour);
-        newPlayer.setCamoCategory(Camouflage.COLOUR_CAMOUFLAGE);
-        newPlayer.setCamoFileName(colour.name());
-        newPlayer.setTeam(Math.min(team, 5));
-        gameserver.getGame().addPlayer(connId, newPlayer);
-        validatePlayerInfo(connId);
-        return newPlayer;
+        return gameserver.addNewPlayer(connId, name);
     }
 
     /**
      * Validates the player info.
      */
     public void validatePlayerInfo(int playerId) { //TODO INTEREST
-        final IPlayer player = getPlayer(playerId);
-
-        if (player != null) {
-            // TODO : check for duplicate or reserved names
-
-            // Colour Assignment
-            final PlayerColour[] playerColours = PlayerColour.values();
-            boolean allUsed = true;
-            Set<PlayerColour> colourUtilization = new HashSet<>();
-            for (Enumeration<IPlayer> i = gameserver.getGame().getPlayers(); i.hasMoreElements(); ) {
-                final IPlayer otherPlayer = i.nextElement();
-                if (otherPlayer.getId() != playerId) {
-                    colourUtilization.add(otherPlayer.getColour());
-                } else {
-                    allUsed = false;
-                }
-            }
-
-            if (!allUsed && colourUtilization.contains(player.getColour())) {
-                for (PlayerColour colour : playerColours) {
-                    if (!colourUtilization.contains(colour)) {
-                        player.setColour(colour);
-                        break;
-                    }
-                }
-            }
-        }
+        gameserver.validatePlayerInfo(playerId);
     }
 
     /**
@@ -1155,7 +1099,7 @@ public class Server implements Runnable {
     /**
      * When the load command is used, there is a list of already connected
      * players which have assigned names and player id numbers with the id
-     * numbers matching the connection numbers. When a new gameserver.getGame() is loaded, this
+     * numbers matching the connection numbers. When a new game is loaded, this
      * mapping may need to be updated. This method takes a map of player names
      * to their current ids, and uses the list of players to figure out what the
      * current ids should change to.
@@ -31054,8 +30998,6 @@ public class Server implements Runnable {
         IPlayer player = gameserver.getGame().getPlayer(connId);
         // Check player. Please note, the connection may be pending.
         if ((null == player) && (null == getPendingConnection(connId))) {
-
-            System.out.println("SUP?");
             MegaMek.getLogger().error("Server does not recognize player at connection " + connId);
             return;
         }
