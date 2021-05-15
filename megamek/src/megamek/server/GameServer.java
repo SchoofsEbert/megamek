@@ -148,7 +148,7 @@ public class GameServer extends ServerRefactored{
 
         if (!returning) {
             // Check to avoid duplicate names...
-            name = server.correctDupeName(name);
+            name = gamelogic.correctDupeName(name);
             server.sendToPending(connId, new Packet(Packet.COMMAND_SERVER_CORRECT_NAME, name));
         }
 
@@ -159,7 +159,7 @@ public class GameServer extends ServerRefactored{
 
         // add and validate the player info
         if (!returning) {
-            server.addNewPlayer(connId, name);
+            gamelogic.addNewPlayer(connId, name);
         }
 
         // if it is not the lounge phase, this player becomes an observer
@@ -270,9 +270,17 @@ public class GameServer extends ServerRefactored{
     /**
      * Validates the player info.
      */
-    public void validatePlayerInfo(int playerId) { //TODO INTEREST
+    public void validatePlayerInfo(int playerId) {
         gamelogic.validatePlayerInfo(playerId);
     }
+
+    /**
+     * Correct a duplicate player name
+     */
+    public String correctDupeName(String oldName) {
+        return gamelogic.correctDupeName(oldName);
+    }
+
 
 
 }

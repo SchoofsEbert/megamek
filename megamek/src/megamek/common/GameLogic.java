@@ -150,6 +150,35 @@ public class GameLogic {
             }
         }
     }
+
+    /**
+     * Correct a duplicate player name
+     *
+     * @param oldName the <code>String</code> old player name, that is a duplicate
+     * @return the <code>String</code> new player name
+     */
+    public String correctDupeName(String oldName) {
+        for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
+            IPlayer player = i.nextElement();
+            if (player.getName().equals(oldName)) {
+                // We need to correct it.
+                String newName = oldName;
+                int dupNum;
+                try {
+                    dupNum = Integer.parseInt(oldName.substring(oldName.lastIndexOf(".") + 1));
+                    dupNum++;
+                    newName = oldName.substring(0, oldName.lastIndexOf("."));
+                } catch (Exception e) {
+                    // If this fails, we don't care much.
+                    // Just assume it's the first time for this name.
+                    dupNum = 2;
+                }
+                newName = newName.concat(".").concat(Integer.toString(dupNum));
+                return correctDupeName(newName);
+            }
+        }
+        return oldName;
+    }
 }
 
 

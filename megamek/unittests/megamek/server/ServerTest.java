@@ -134,6 +134,28 @@ public class ServerTest extends TestCase {
         assertEquals(newplayer.getCamoCategory(), Camouflage.COLOUR_CAMOUFLAGE);
     }
 
+    //Moved to GameServer
+    public void testReceivePlayerNameNewDuplicate() throws NoSuchFieldException, IllegalAccessException, UnknownHostException {
+        server.setGame(game);
+        Field connectionsPending = Server.class.getDeclaredField("connectionsPending");
+        connectionsPending.setAccessible(true);
+        Socket s = new Socket();
+        IConnection connection = Mockito.mock(ConnectionFactory.getInstance().createServerConnection(s, 0).getClass());
+        Vector<IConnection> connectionspending = new Vector<>(4);
+        Socket s2 = new Socket();
+        IConnection connection2 = Mockito.mock(ConnectionFactory.getInstance().createServerConnection(s2, 1).getClass());
+        Mockito.when(connection2.getId()).thenReturn(1);
+        connectionspending.addElement(connection);
+        connectionspending.addElement(connection2);
+        connectionsPending.set(server, connectionspending);
+
+        server.handle(0,new Packet(Packet.COMMAND_CLIENT_NAME, "JohnDoe"));
+        server.handle(1,new Packet(Packet.COMMAND_CLIENT_NAME, "JohnDoe"));
+
+        IPlayer newplayer = server.getPlayer(1);
+        assertEquals(newplayer.getName(), "JohnDoe.2");
+    }
+
     public void testReceivePlayerInfo() throws NoSuchFieldException, IllegalAccessException {
         server.setGame(game);
 

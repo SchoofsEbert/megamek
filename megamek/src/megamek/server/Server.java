@@ -698,26 +698,7 @@ public class Server implements Runnable {
      * @return the <code>String</code> new player name
      */
     String correctDupeName(String oldName) {
-        for (Enumeration<IPlayer> i = gameserver.getGame().getPlayers(); i.hasMoreElements(); ) {
-            IPlayer player = i.nextElement();
-            if (player.getName().equals(oldName)) {
-                // We need to correct it.
-                String newName = oldName;
-                int dupNum;
-                try {
-                    dupNum = Integer.parseInt(oldName.substring(oldName.lastIndexOf(".") + 1));
-                    dupNum++;
-                    newName = oldName.substring(0, oldName.lastIndexOf("."));
-                } catch (Exception e) {
-                    // If this fails, we don't care much.
-                    // Just assume it's the first time for this name.
-                    dupNum = 2;
-                }
-                newName = newName.concat(".").concat(Integer.toString(dupNum));
-                return correctDupeName(newName);
-            }
-        }
-        return oldName;
+        return gameserver.correctDupeName(oldName);
     }
 
     private void receivePlayerVersion(Packet packet, int connId) {
@@ -729,10 +710,7 @@ public class Server implements Runnable {
      * connection.
      */
     private void receivePlayerName(Packet packet, int connId) {
-
-        System.out.println("HE?");
         gameserver.receivePlayerName(packet, connId);
-
     }
 
     /**
