@@ -26,9 +26,7 @@ public class GameServer extends ServerRefactored{
     }
     public GameServer(String password, int port, boolean registerWithServerBrowser,
                       String metaServerUrl, Server server) throws IOException {
-        super(password, port, registerWithServerBrowser, metaServerUrl);
-        // TODO IMPLEMENT
-        gamelogic = new GameLogic();
+        this(password, port, registerWithServerBrowser, metaServerUrl);
         this.server = server;
     }
 
@@ -273,14 +271,6 @@ public class GameServer extends ServerRefactored{
     public void validatePlayerInfo(int playerId) {
         gamelogic.validatePlayerInfo(playerId);
     }
-
-    /**
-     * Correct a duplicate player name
-     */
-    public String correctDupeName(String oldName) {
-        return gamelogic.correctDupeName(oldName);
-    }
-
 
 
 }

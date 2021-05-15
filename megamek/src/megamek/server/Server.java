@@ -556,7 +556,6 @@ public class Server implements Runnable {
      * it was found, the build timestamp
      */
     private String createMotd() {
-        //TODO moved to gameserver
         StringBuilder motd = new StringBuilder();
         motd.append("Welcome to MegaMek.  Server is running version ").append(MegaMek.VERSION)
                 .append(", build date ");
@@ -689,16 +688,6 @@ public class Server implements Runnable {
      */
     private void receivePlayerInfo(Packet packet, int connId) {
         gameserver.receivePlayerInfo(packet, connId);
-    }
-
-    /**
-     * Correct a duplicate player name
-     *
-     * @param oldName the <code>String</code> old player name, that is a duplicate
-     * @return the <code>String</code> new player name
-     */
-    String correctDupeName(String oldName) {
-        return gameserver.correctDupeName(oldName);
     }
 
     private void receivePlayerVersion(Packet packet, int connId) {
@@ -30292,7 +30281,7 @@ public class Server implements Runnable {
     }
 
     /**
-     * Sets gameserver.getGame() options, providing that the player has specified the password
+     * Sets game options, providing that the player has specified the password
      * correctly.
      *
      * @return true if any options have been successfully changed.
@@ -31207,13 +31196,13 @@ public class Server implements Runnable {
                 break;
             case Packet.COMMAND_LOAD_GAME:
                 try {
-                    sendServerChat(getPlayer(connId).getName() + " loaded a new gameserver.getGame().");
+                    sendServerChat(getPlayer(connId).getName() + " loaded a new game.");
                     setGame((IGame) packet.getObject(0));
                     for (IConnection conn : connections) {
                         sendCurrentInfo(conn.getId());
                     }
                 } catch (Exception e) {
-                    MegaMek.getLogger().error("Error loading save gameserver.getGame() sent from client", e);
+                    MegaMek.getLogger().error("Error loading save game sent from client", e);
                 }
                 break;
             case Packet.COMMAND_SQUADRON_ADD:
