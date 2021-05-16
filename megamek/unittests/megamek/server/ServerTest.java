@@ -15,6 +15,8 @@ import megamek.common.net.Packet;
 import megamek.common.options.GameOptions;
 import megamek.common.weapons.ACAPHandler;
 import megamek.common.weapons.AttackHandler;
+import megamek.server.victory.Victory;
+import megamek.server.victory.VictoryResult;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -156,6 +158,7 @@ public class ServerTest extends TestCase {
         assertEquals(newplayer.getName(), "JohnDoe.2");
     }
 
+    //Moved to GameServer
     public void testReceivePlayerInfo() throws NoSuchFieldException, IllegalAccessException {
         server.setGame(game);
 
@@ -185,4 +188,65 @@ public class ServerTest extends TestCase {
         assertEquals(gameplayer.getNbrMFInferno(), player.getNbrMFInferno());
         assertEquals(gameplayer.getConstantInitBonus(), player.getConstantInitBonus());
     }
+
+
+    //Moved to GameLogic
+    public void testVictoryFalse() throws NoSuchFieldException, IllegalAccessException {
+        server.setGame(game);
+
+        VictoryResult draw = Mockito.mock(VictoryResult.class);
+        Mockito.when(draw.victory()).thenReturn(false);
+
+        Victory vic = Mockito.mock(Victory.class);
+        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(draw);
+        Field victory = Game.class.getDeclaredField("victory");
+        victory.setAccessible(true);
+        victory.set(game, vic);
+
+        assertFalse(server.victory());
+        assertEquals(game.getVictoryPlayerId(), IPlayer.PLAYER_NONE);
+        assertEquals(game.getVictoryTeam(), IPlayer.TEAM_NONE);
+    }
+
+    //Moved to GameLogic
+    public void testVictoryDraw() throws NoSuchFieldException, IllegalAccessException {
+        server.setGame(game);
+
+        VictoryResult draw = Mockito.mock(VictoryResult.class);
+        Mockito.when(draw.isDraw()).thenReturn(true);
+        Mockito.when(draw.victory()).thenReturn(true);
+
+        Victory vic = Mockito.mock(Victory.class);
+        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(draw);
+        Field victory = Game.class.getDeclaredField("victory");
+        victory.setAccessible(true);
+        victory.set(game, vic);
+
+        assertTrue(server.victory());
+        assertEquals(game.getVictoryPlayerId(), IPlayer.PLAYER_NONE);
+        assertEquals(game.getVictoryTeam(), IPlayer.TEAM_NONE);
+    }
+
+    //Moved to GameLogic
+    public void testVictoryWon() throws NoSuchFieldException, IllegalAccessException {
+        server.setGame(game);
+
+        VictoryResult won = Mockito.mock(VictoryResult.class);
+        Mockito.when(won.isDraw()).thenReturn(false);
+        Mockito.when(won.victory()).thenReturn(true);
+        Mockito.when(won.getWinningPlayer()).thenReturn(0);
+        Mockito.when(won.getWinningTeam()).thenReturn(1);
+
+        Victory vic = Mockito.mock(Victory.class);
+        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(won);
+        Field victory = Game.class.getDeclaredField("victory");
+        victory.setAccessible(true);
+        victory.set(game, vic);
+
+        assertTrue(server.victory());
+        assertEquals(game.getVictoryPlayerId(), 0);
+        assertEquals(game.getVictoryTeam(), 1);
+    }
+
+
 }

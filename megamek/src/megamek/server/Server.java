@@ -3019,45 +3019,7 @@ public class Server implements Runnable {
      * add some reports to reporting
      */
     public boolean victory() { //TODO INTEREST
-        VictoryResult vr = gameserver.getGame().getVictory().checkForVictory(gameserver.getGame(), gameserver.getGame().getVictoryContext());
-        for (Report r : vr.getReports()) {
-            addReport(r);
-        }
-
-        if (vr.victory()) {
-            boolean draw = vr.isDraw();
-            int wonPlayer = vr.getWinningPlayer();
-            int wonTeam = vr.getWinningTeam();
-
-            if (wonPlayer != IPlayer.PLAYER_NONE) {
-                Report r = new Report(7200, Report.PUBLIC);
-                r.add(Server.getColorForPlayer (gameserver.getGame().getPlayer(wonPlayer)));
-                addReport(r);
-            }
-            if (wonTeam != IPlayer.TEAM_NONE) {
-                Report r = new Report(7200, Report.PUBLIC);
-                r.add("Team " + wonTeam);
-                addReport(r);
-            }
-            if (draw) {
-                // multiple-won draw
-                gameserver.getGame().setVictoryPlayerId(IPlayer.PLAYER_NONE);
-                gameserver.getGame().setVictoryTeam(IPlayer.TEAM_NONE);
-            } else {
-                // nobody-won draw or
-                // single player won or
-                // single team won
-                gameserver.getGame().setVictoryPlayerId(wonPlayer);
-                gameserver.getGame().setVictoryTeam(wonTeam);
-            }
-        } else {
-            gameserver.getGame().setVictoryPlayerId(IPlayer.PLAYER_NONE);
-            gameserver.getGame().setVictoryTeam(IPlayer.TEAM_NONE);
-            if  (gameserver.getGame().isForceVictory()) {
-                cancelVictory();
-            }
-        }
-        return vr.victory();
+        return gameserver.victory();
     }// end victory
 
     private boolean isPlayerForcedVictory() {
@@ -3553,7 +3515,7 @@ public class Server implements Runnable {
     }
 
     private static String getColorForPlayer(IPlayer p) {
-        return "<B><font color='" + p.getColour().getHexString(0x00F0F0F0) + "'>" + p.getName() + "</font></B>";
+        return GameLogic.getColorForPlayer(p);
     }
 
     /**
@@ -34543,7 +34505,8 @@ public class Server implements Runnable {
      * Add a single report to the report queue of all players and the master
      * vPhaseReport queue
      */
-    private void addReport(Report report) {
+    //TODO move to Reporter
+    public void addReport(Report report) {
         vPhaseReport.addElement(report);
     }
 

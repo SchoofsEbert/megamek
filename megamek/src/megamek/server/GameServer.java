@@ -28,6 +28,7 @@ public class GameServer extends ServerRefactored{
                       String metaServerUrl, Server server) throws IOException {
         this(password, port, registerWithServerBrowser, metaServerUrl);
         this.server = server;
+        gamelogic = new GameLogic(server);
     }
 
     //END constructors to be deleted
@@ -50,6 +51,7 @@ public class GameServer extends ServerRefactored{
                             String metaServerUrl) throws IOException {
         super(password, port, registerWithServerBrowser, metaServerUrl);
         // TODO IMPLEMENT
+
         gamelogic = new GameLogic();
     }
 
@@ -272,5 +274,12 @@ public class GameServer extends ServerRefactored{
         gamelogic.validatePlayerInfo(playerId);
     }
 
-
+    /**
+     * Returns true if victory conditions have been met. Victory conditions are
+     * when there is only one player left with mechs or only one team. will also
+     * add some reports to reporting
+     */
+    public boolean victory() {
+        return gamelogic.victory();
+    }
 }

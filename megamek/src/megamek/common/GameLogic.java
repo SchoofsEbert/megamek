@@ -5,6 +5,8 @@ import megamek.common.event.GameListener;
 import megamek.common.icons.Camouflage;
 import megamek.common.weapons.AttackHandler;
 import megamek.common.weapons.WeaponHandler;
+import megamek.server.Server;
+import megamek.server.victory.VictoryResult;
 
 import java.util.*;
 
@@ -12,6 +14,15 @@ public class GameLogic {
     //TODO IMPLEMENT
 
     private IGame game = new Game();
+
+    //TODO, once refactoring is done, all connections with server should be removed, because the method calls to server are on their place
+    //AND the following constructors should be deleted!
+    private Server server;
+
+    public GameLogic(Server server) {
+        this();
+        this.server = server;
+    }
 
     public GameLogic() {
         game.getOptions().initialize();
@@ -178,6 +189,59 @@ public class GameLogic {
             }
         }
         return oldName;
+    }
+
+    /**
+     * Returns true if victory conditions have been met. Victory conditions are
+     * when there is only one player left with mechs or only one team. will also
+     * add some reports to reporting
+     */
+    public boolean victory() { //TODO INTEREST
+        VictoryResult vr = game.getVictory().checkForVictory(game, game.getVictoryContext());
+        for (Report r : vr.getReports()) {
+            // TODO this should obviously be the task of the reporter, once refactored
+            server.addReport(r);
+        }
+
+        if (vr.victory()) {
+            boolean draw = vr.isDraw();
+            int wonPlayer = vr.getWinningPlayer();
+            int wonTeam = vr.getWinningTeam();
+
+            if (wonPlayer != IPlayer.PLAYER_NONE) {
+                Report r = new Report(7200, Report.PUBLIC);
+                r.add(getColorForPlayer (game.getPlayer(wonPlayer)));
+                server.addReport(r);
+            }
+            if (wonTeam != IPlayer.TEAM_NONE) {
+                Report r = new Report(7200, Report.PUBLIC);
+                r.add("Team " + wonTeam);
+                server.addReport(r);
+            }
+            if (draw) {
+                // multiple-won draw
+                game.setVictoryPlayerId(IPlayer.PLAYER_NONE);
+                game.setVictoryTeam(IPlayer.TEAM_NONE);
+            } else {
+                // nobody-won draw or
+                // single player won or
+                // single team won
+                game.setVictoryPlayerId(wonPlayer);
+                game.setVictoryTeam(wonTeam);
+            }
+        } else {
+            game.setVictoryPlayerId(IPlayer.PLAYER_NONE);
+            game.setVictoryTeam(IPlayer.TEAM_NONE);
+            if  (game.isForceVictory()) {
+                server.cancelVictory();
+            }
+        }
+        return vr.victory();
+    }// end victory
+
+    //TODO set to private once refactoring is done
+    public static String getColorForPlayer(IPlayer p) {
+        return "<B><font color='" + p.getColour().getHexString(0x00F0F0F0) + "'>" + p.getName() + "</font></B>";
     }
 }
 
