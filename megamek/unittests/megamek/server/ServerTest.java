@@ -134,6 +134,7 @@ public class ServerTest extends TestCase {
 
         assertEquals(newplayer.getColour(), PlayerColour.RED);
         assertEquals(newplayer.getCamoCategory(), Camouflage.COLOUR_CAMOUFLAGE);
+        assertEquals(newplayer.getScore().getTotalScore(), 0);
     }
 
     //Moved to GameServer
@@ -172,6 +173,10 @@ public class ServerTest extends TestCase {
         player.setNbrMFActive(1);
         player.setNbrMFInferno(1);
         player.setConstantInitBonus(10);
+        EloScore score = new EloScore();
+        score.win(1000);
+        score.win(500);
+        player.setScore(score);
 
         server.handle(0,new Packet(Packet.COMMAND_PLAYER_UPDATE, player));
 
@@ -187,6 +192,7 @@ public class ServerTest extends TestCase {
         assertEquals(gameplayer.getNbrMFActive(), player.getNbrMFActive());
         assertEquals(gameplayer.getNbrMFInferno(), player.getNbrMFInferno());
         assertEquals(gameplayer.getConstantInitBonus(), player.getConstantInitBonus());
+        assertEquals(gameplayer.getScore().getTotalScore(), 1150);
     }
 
 

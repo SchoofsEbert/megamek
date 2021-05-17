@@ -70,6 +70,8 @@ public final class Player extends TurnOrdered implements IPlayer {
     private Vector<Minefield> visibleMinefields = new Vector<>();
 
     private boolean admitsDefeat = false;
+
+    private EloScore score = new EloScore();
     
     /**
      * Boolean that keeps track of whether a player has accepted another 
@@ -599,5 +601,16 @@ public final class Player extends TurnOrdered implements IPlayer {
         setNbrMFActive(player.getNbrMFActive());
         setNbrMFInferno(player.getNbrMFInferno());
         setConstantInitBonus(player.getConstantInitBonus());
+        setScore(player.getScore());
+    }
+
+    @Override
+    public EloScore getScore() {
+        return score;
+    }
+
+    @Override
+    public void setScore(EloScore score) {
+        this.score = score;
     }
 }

@@ -199,4 +199,14 @@ public interface IPlayer extends ITurnOrdered {
      * Update a player to parameters of passed player
      */
     void update(IPlayer player);
+
+    /**
+     * Get the score of a player
+     */
+    EloScore getScore();
+
+    /**
+     * Get the score of a player
+     */
+    void setScore(EloScore score);
 }
