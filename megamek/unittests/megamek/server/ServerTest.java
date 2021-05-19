@@ -42,10 +42,8 @@ public class ServerTest extends TestCase {
         game =  new Game();
         entity = new BipedMech();
         player = new Player(0, "JohnDoe");
-        game.addEntity(entity);
         game.addPlayer(0, player);
-
-
+        game.addEntity(entity);
 
         logger = Mockito.mock(FakeLogger.class);
         MegaMek.setLogger(logger);
