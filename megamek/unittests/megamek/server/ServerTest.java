@@ -303,7 +303,6 @@ public class ServerTest extends TestCase {
         Field reports = Game.class.getDeclaredField("gameReports");
         reports.setAccessible(true);
 
-        Server.class.getDeclaredMethod("is")
 
         assertFalse(player.isDone());
         assertEquals(server.getvPhaseReport(), reports);
