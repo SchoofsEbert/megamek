@@ -20,13 +20,16 @@ import megamek.server.victory.VictoryResult;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -317,4 +320,27 @@ public class ServerTest extends TestCase {
         assertFalse(player.isDone());
     }
 
+    public void testPrepareForPhaseEnd() throws NoSuchMethodException, InvocationTargetException,
+            IllegalAccessException, NoSuchFieldException, NullPointerException{
+        server.setGame(game);
+
+        Method prepareforphase = Server.class.getDeclaredMethod("prepareForPhase", IGame.Phase.class);
+        prepareforphase.setAccessible(true);
+        prepareforphase.invoke(server, IGame.Phase.PHASE_END);
+
+        Object s = Server.class;
+
+        Field explodingcharges = Server.class.getDeclaredField("explodingCharges");
+        explodingcharges.setAccessible(true);
+        ArrayList al = (ArrayList) explodingcharges.get(server);
+
+        Field hexupdateset = Server.class.getDeclaredField("hexUpdateSet");
+        hexupdateset.setAccessible(true);
+        Set hus = (Set) hexupdateset.get(server);
+
+        assertEquals(server.getGame().getIlluminatedPositions().size(), 0);
+        assertEquals(server.getvPhaseReport().size(), 4);
+        assertEquals(al.size(), 0);
+        assertEquals(hus.size(), 0);
+    }
 }

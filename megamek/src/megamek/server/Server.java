@@ -2103,50 +2103,7 @@ public class Server implements Runnable {
                 doTryUnstuck();
                 break;
             case PHASE_END:
-                resetEntityPhase(phase);
-                clearReports();
-                resolveHeat();
-                if  (gameserver.getGame().getPlanetaryConditions().isSandBlowing()
-                    &&  (gameserver.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
-                    addReport(resolveBlowingSandDamage());
-                }
-                addReport(resolveControlRolls());
-                addReport(checkForTraitors());
-                // write End Phase header
-                addReport(new Report(5005, Report.PUBLIC));
-                checkLayExplosives();
-                resolveHarJelRepairs();
-                resolveEmergencyCoolantSystem();
-                checkForSuffocation();
-                gameserver.getGame().getPlanetaryConditions().determineWind();
-                send(createPlanetaryConditionsPacket());
-
-                applyBuildingDamage();
-                addReport (gameserver.getGame().ageFlares());
-                send(createFlarePacket());
-                resolveAmmoDumps();
-                resolveCrewWakeUp();
-                resolveConsoleCrewSwaps();
-                resolveSelfDestruct();
-                resolveShutdownCrashes();
-                checkForIndustrialEndOfTurn();
-                resolveMechWarriorPickUp();
-                resolveVeeINarcPodRemoval();
-                resolveFortify();
-
-                // Moved this to the very end because it makes it difficult to see
-                // more important updates when you have 300+ messages of smoke filling
-                // whatever hex. Please don't move it above the other things again.
-                // Thanks! Ralgith - 2018/03/15
-                hexUpdateSet.clear();
-                for (DynamicTerrainProcessor tp : terrainProcessors) {
-                    tp.doEndPhaseChanges(vPhaseReport);
-                }
-                sendChangedHexes(hexUpdateSet);
-
-                checkForObservers();
-                transmitAllPlayerUpdates();
-                entityAllUpdate();
+                prepareForPhaseEnd(phase);
                 break;
             case PHASE_INITIATIVE_REPORT:
                 autoSave();
@@ -2185,6 +2142,53 @@ public class Server implements Runnable {
                 break;
             default:
         }
+    }
+
+    private void prepareForPhaseEnd(Phase phase) {
+        resetEntityPhase(phase);
+        clearReports();
+        resolveHeat();
+        if  (gameserver.getGame().getPlanetaryConditions().isSandBlowing()
+            &&  (gameserver.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
+            addReport(resolveBlowingSandDamage());
+        }
+        addReport(resolveControlRolls());
+        addReport(checkForTraitors());
+        // write End Phase header
+        addReport(new Report(5005, Report.PUBLIC));
+        checkLayExplosives();
+        resolveHarJelRepairs();
+        resolveEmergencyCoolantSystem();
+        checkForSuffocation();
+        gameserver.getGame().getPlanetaryConditions().determineWind();
+        send(createPlanetaryConditionsPacket());
+
+        applyBuildingDamage();
+        addReport (gameserver.getGame().ageFlares());
+        send(createFlarePacket());
+        resolveAmmoDumps();
+        resolveCrewWakeUp();
+        resolveConsoleCrewSwaps();
+        resolveSelfDestruct();
+        resolveShutdownCrashes();
+        checkForIndustrialEndOfTurn();
+        resolveMechWarriorPickUp();
+        resolveVeeINarcPodRemoval();
+        resolveFortify();
+
+        // Moved this to the very end because it makes it difficult to see
+        // more important updates when you have 300+ messages of smoke filling
+        // whatever hex. Please don't move it above the other things again.
+        // Thanks! Ralgith - 2018/03/15
+        hexUpdateSet.clear();
+        for (DynamicTerrainProcessor tp : terrainProcessors) {
+            tp.doEndPhaseChanges(vPhaseReport);
+        }
+        sendChangedHexes(hexUpdateSet);
+
+        checkForObservers();
+        transmitAllPlayerUpdates();
+        entityAllUpdate();
     }
 
     private void prepareForPhaseEndReport() {
