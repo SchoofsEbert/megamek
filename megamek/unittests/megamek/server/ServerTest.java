@@ -21,6 +21,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -254,5 +256,23 @@ public class ServerTest extends TestCase {
         assertEquals(game.getVictoryTeam(), 1);
     }
 
+    public void testPrepareForPhaseVictory() throws  IllegalAccessException, NoSuchMethodException,
+            InvocationTargetException, NoSuchFieldException {
+        server.setGame(game);
+
+        player.setDone(true);
+
+        Method prepareforphase = Server.class.getDeclaredMethod("prepareForPhase", IGame.Phase.class);
+        prepareforphase.setAccessible(true);
+        prepareforphase.invoke(server, IGame.Phase.PHASE_VICTORY);
+
+        Field reports = Game.class.getDeclaredField("gameReports");
+        reports.setAccessible(true);
+
+        Server.class.getDeclaredMethod("is")
+
+        assertFalse(player.isDone());
+        assertEquals(server.getvPhaseReport(), reports);
+    }
 
 }

@@ -2185,59 +2185,63 @@ public class Server implements Runnable {
                 }
                 break;
             case PHASE_VICTORY:
-                resetPlayersDone();
-                clearReports();
-                prepareVictoryReport();
-                gameserver.getGame().addReports(vPhaseReport);
-                // Before we send the full entities packet we need to loop
-                // through the fighters in squadrons and damage them.
-                for (Iterator<Entity> ents = gameserver.getGame().getEntities(); ents.hasNext(); ) {
-                    Entity entity = ents.next();
-                    if ((entity.isFighter()) && !(entity instanceof FighterSquadron)) {
-                        if (entity.isPartOfFighterSquadron() || entity.isCapitalFighter()) {
-                            ((IAero) entity).doDisbandDamage();
-                        }
-                    }
-                // fix the armor and SI of aeros if using aero sanity rules for
-                // the MUL
-                if  (gameserver.getGame().getOptions().booleanOption(OptionsConstants.ADVAERORULES_AERO_SANITY)
-                        && (entity instanceof Aero)) {
-                    // need to rescale SI and armor
-                    int scale = 1;
-                    if (entity.isCapitalScale()) {
-                        scale = 10;
-                    }
-                    Aero a = (Aero) entity;
-                    int currentSI = a.getSI() / (2 * scale);
-                    a.set0SI(a.get0SI() / (2 * scale));
-                    if (currentSI > 0) {
-                        a.setSI(currentSI);
-                    }
-                    //Fix for #587. MHQ tracks fighters at standard scale and doesn't (currently)
-                    //track squadrons. Squadrons don't save to MUL either, so... only convert armor for JS/WS/SS?
-                    //Do we ever need to save capital fighter armor to the final MUL or entityStatus?
-                    if (!entity.hasETypeFlag(Entity.ETYPE_JUMPSHIP)) {
-                        scale = 1;
-                    }
-                    if (scale > 1) {
-                        for (int loc = 0; loc < entity.locations(); loc++) {
-                            int currentArmor = entity.getArmor(loc) / scale;
-                            if (entity.getOArmor(loc) > 0) {
-                                entity.initializeArmor(entity.getOArmor(loc) / scale, loc);
-                            }
-                            if (entity.getArmor(loc) > 0) {
-                                entity.setArmor(currentArmor, loc);
-                            }
-                        }
-                    }
-                }
-            }
-                send(createFullEntitiesPacket());
-                send(createReportPacket(null));
-                send(createEndOfGamePacket());
+                prepareForPhaseVictory();
                 break;
             default:
         }
+    }
+
+    private void prepareForPhaseVictory() {
+        resetPlayersDone();
+        clearReports();
+        prepareVictoryReport();
+        gameserver.getGame().addReports(vPhaseReport);
+        // Before we send the full entities packet we need to loop
+        // through the fighters in squadrons and damage them.
+        for (Iterator<Entity> ents = gameserver.getGame().getEntities(); ents.hasNext(); ) {
+            Entity entity = ents.next();
+            if ((entity.isFighter()) && !(entity instanceof FighterSquadron)) {
+                if (entity.isPartOfFighterSquadron() || entity.isCapitalFighter()) {
+                    ((IAero) entity).doDisbandDamage();
+                }
+            }
+        // fix the armor and SI of aeros if using aero sanity rules for
+        // the MUL
+        if  (gameserver.getGame().getOptions().booleanOption(OptionsConstants.ADVAERORULES_AERO_SANITY)
+                && (entity instanceof Aero)) {
+            // need to rescale SI and armor
+            int scale = 1;
+            if (entity.isCapitalScale()) {
+                scale = 10;
+            }
+            Aero a = (Aero) entity;
+            int currentSI = a.getSI() / (2 * scale);
+            a.set0SI(a.get0SI() / (2 * scale));
+            if (currentSI > 0) {
+                a.setSI(currentSI);
+            }
+            //Fix for #587. MHQ tracks fighters at standard scale and doesn't (currently)
+            //track squadrons. Squadrons don't save to MUL either, so... only convert armor for JS/WS/SS?
+            //Do we ever need to save capital fighter armor to the final MUL or entityStatus?
+            if (!entity.hasETypeFlag(Entity.ETYPE_JUMPSHIP)) {
+                scale = 1;
+            }
+            if (scale > 1) {
+                for (int loc = 0; loc < entity.locations(); loc++) {
+                    int currentArmor = entity.getArmor(loc) / scale;
+                    if (entity.getOArmor(loc) > 0) {
+                        entity.initializeArmor(entity.getOArmor(loc) / scale, loc);
+                    }
+                    if (entity.getArmor(loc) > 0) {
+                        entity.setArmor(currentArmor, loc);
+                    }
+                }
+            }
+        }
+    }
+        send(createFullEntitiesPacket());
+        send(createReportPacket(null));
+        send(createEndOfGamePacket());
     }
 
     /**
