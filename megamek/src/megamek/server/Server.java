@@ -2365,6 +2365,8 @@ public class Server implements Runnable {
                     autoSave();
                 }
                 break;
+            case PHASE_VICTORY:
+                gameserver.updatePlayerScores();
             default:
         }
     }

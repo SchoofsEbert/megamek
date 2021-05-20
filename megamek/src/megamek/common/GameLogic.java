@@ -7,6 +7,7 @@ import megamek.common.weapons.AttackHandler;
 import megamek.common.weapons.WeaponHandler;
 import megamek.server.Server;
 import megamek.server.victory.VictoryResult;
+import org.apache.commons.collections.map.HashedMap;
 
 import java.util.*;
 
@@ -23,6 +24,7 @@ public class GameLogic {
         this();
         this.server = server;
     }
+
 
     public GameLogic() {
         game.getOptions().initialize();
@@ -237,7 +239,59 @@ public class GameLogic {
             }
         }
         return vr.victory();
-    }// end victory
+    }
+
+    //TODO set to private once refactoring is done
+    public void updatePlayerScores() {
+        //Assure that the playerscores are only updated when in the victory phase.
+        if (game.getPhase() == IGame.Phase.PHASE_VICTORY) {
+            int wonPlayer = game.getVictoryPlayerId();
+            int wonTeam = game.getVictoryTeam();
+
+            HashedMap opponent_scores = new HashedMap();
+
+            for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
+                IPlayer player = i.nextElement();
+                int opponent_score = 0;
+                if (wonTeam != IPlayer.TEAM_NONE) {
+                    for (Enumeration<IPlayer> j = game.getPlayers(); j.hasMoreElements(); ) {
+                        IPlayer opponent = j.nextElement();
+                        if (opponent.getTeam() != player.getTeam()) {
+                             opponent_score += opponent.getScore().getTotalScore();
+                        }
+                    }
+                }
+                else if (wonPlayer != IPlayer.PLAYER_NONE) {
+                    for (Enumeration<IPlayer> j = game.getPlayers(); j.hasMoreElements(); ) {
+                        IPlayer opponent = j.nextElement();
+                        if (opponent != player) {
+                            opponent_score += opponent.getScore().getTotalScore();
+                        }
+                    }
+                }
+                opponent_scores.put(player.getId(), opponent_score);
+            }
+            for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
+                IPlayer player = i.nextElement();
+                if (wonTeam != IPlayer.TEAM_NONE) {
+                    if (wonTeam == player.getTeam()) {
+                        player.getScore().win((Integer) opponent_scores.get(player.getId()));
+                    }
+                    else {
+                        player.getScore().lose((Integer) opponent_scores.get(player.getId()));
+                    }
+                }
+                else if (wonPlayer != IPlayer.PLAYER_NONE) {
+                    if (wonPlayer == player.getId()) {
+                        player.getScore().win((Integer) opponent_scores.get(player.getId()));
+                    }
+                    else {
+                        player.getScore().lose((Integer) opponent_scores.get(player.getId()));
+                    }
+                }
+            }
+        }
+    }
 
     //TODO set to private once refactoring is done
     public static String getColorForPlayer(IPlayer p) {

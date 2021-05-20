@@ -44,10 +44,8 @@ public class ServerTest extends TestCase {
         game =  new Game();
         entity = new BipedMech();
         player = new Player(0, "JohnDoe");
-        game.addEntity(entity);
         game.addPlayer(0, player);
-
-
+        game.addEntity(entity);
 
         logger = Mockito.mock(FakeLogger.class);
         MegaMek.setLogger(logger);
@@ -254,6 +252,42 @@ public class ServerTest extends TestCase {
         assertTrue(server.victory());
         assertEquals(game.getVictoryPlayerId(), 0);
         assertEquals(game.getVictoryTeam(), 1);
+
+    }
+
+    public void testExecutePhaseVictory() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException, NoSuchFieldException {
+        game.setPhase(IGame.Phase.PHASE_VICTORY);
+        server.setGame(game);
+        EloScore score = new EloScore();
+        score.win(1000);
+        score.win(500);
+        player.setScore(score);
+        IPlayer player2 = new Player(1, "Opponent");
+        EloScore score2 = new EloScore();
+        score2.win(1000);
+        score2.lose(1000);
+        score2.lose(500);
+        player2.setScore(score2);
+        game.addPlayer(1, player2);
+
+        VictoryResult won = Mockito.mock(VictoryResult.class);
+        Mockito.when(won.isDraw()).thenReturn(false);
+        Mockito.when(won.victory()).thenReturn(true);
+        Mockito.when(won.getWinningPlayer()).thenReturn(1);
+
+        Victory vic = Mockito.mock(Victory.class);
+        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(won);
+        Field victory = Game.class.getDeclaredField("victory");
+        victory.setAccessible(true);
+        victory.set(game, vic);
+        server.victory();
+
+        Method executePhase = Server.class.getDeclaredMethod("executePhase", IGame.Phase.class);
+        executePhase.setAccessible(true);
+        executePhase.invoke(server, IGame.Phase.PHASE_VICTORY);
+
+        assertEquals(player.getScore().getTotalScore(), 866);
+        assertEquals(player2.getScore().getTotalScore(), 912);
     }
 
     public void testPrepareForPhaseVictory() throws  IllegalAccessException, NoSuchMethodException,

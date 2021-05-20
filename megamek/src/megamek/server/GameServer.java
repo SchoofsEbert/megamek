@@ -282,4 +282,8 @@ public class GameServer extends ServerRefactored{
     public boolean victory() {
         return gamelogic.victory();
     }
+
+    public void updatePlayerScores() {
+        gamelogic.updatePlayerScores();
+    }
 }
