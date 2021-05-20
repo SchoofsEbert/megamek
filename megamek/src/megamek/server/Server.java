@@ -2178,16 +2178,20 @@ public class Server implements Runnable {
             case PHASE_FIRING_REPORT:
             case PHASE_PHYSICAL_REPORT:
             case PHASE_END_REPORT:
-                resetActivePlayersDone();
-                sendReport();
-                if  (gameserver.getGame().getOptions().booleanOption(OptionsConstants.BASE_PARANOID_AUTOSAVE)) {
-                    autoSave();
-                }
+                prepareForPhaseEndReport();
                 break;
             case PHASE_VICTORY:
                 prepareForPhaseVictory();
                 break;
             default:
+        }
+    }
+
+    private void prepareForPhaseEndReport() {
+        resetActivePlayersDone();
+        sendReport();
+        if  (gameserver.getGame().getOptions().booleanOption(OptionsConstants.BASE_PARANOID_AUTOSAVE)) {
+            autoSave();
         }
     }
 

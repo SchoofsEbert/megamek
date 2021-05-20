@@ -300,12 +300,21 @@ public class ServerTest extends TestCase {
         prepareforphase.setAccessible(true);
         prepareforphase.invoke(server, IGame.Phase.PHASE_VICTORY);
 
-        Field reports = Game.class.getDeclaredField("gameReports");
-        reports.setAccessible(true);
+        assertFalse(player.isDone());
+        assertEquals(server.getvPhaseReport(), server.getGame().getReports(0));
+    }
 
+    public void testPrepareForPhaseEndReport() throws NoSuchMethodException, InvocationTargetException,
+            IllegalAccessException{
+        server.setGame(game);
+
+        player.setDone(true);
+
+        Method prepareforphase = Server.class.getDeclaredMethod("prepareForPhase", IGame.Phase.class);
+        prepareforphase.setAccessible(true);
+        prepareforphase.invoke(server, IGame.Phase.PHASE_END_REPORT);
 
         assertFalse(player.isDone());
-        assertEquals(server.getvPhaseReport(), reports);
     }
 
 }
