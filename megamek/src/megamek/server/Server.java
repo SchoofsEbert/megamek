@@ -2710,9 +2710,8 @@ public class Server implements Runnable {
             case PHASE_TARGETING_REPORT:
                 changePhase(IGame.Phase.PHASE_MOVEMENT);
                 break;
-            case PHASE_END: //TODO INTEREST
+            case PHASE_END:
                 endCurrentPhaseEnd();
-
                 break;
             case PHASE_END_REPORT:
                 if (changePlayersTeam) {
@@ -2725,10 +2724,7 @@ public class Server implements Runnable {
                 }
                 break;
             case PHASE_VICTORY: //TODO INTEREST: THIS IS THE VERY LAST PHASE
-                GameVictoryEvent gve = new GameVictoryEvent(this, gameserver.getGame());
-                gameserver.getGame().processGameEvent(gve);
-                transmitGameVictoryEventToAll();
-                resetGame();
+                endCurrentPhaseVictory();
                 break;
             default:
         }
@@ -2742,7 +2738,14 @@ public class Server implements Runnable {
         }
     }
 
-    private void endCurrentPhaseEnd() {
+    private void endCurrentPhaseVictory() {
+        GameVictoryEvent gve = new GameVictoryEvent(this, gameserver.getGame());
+        gameserver.getGame().processGameEvent(gve);
+        transmitGameVictoryEventToAll();
+        resetGame();
+    }
+
+    private void endCurrentPhaseEnd() { //TODO move to GameServer/GameLogic
         // remove any entities that died in the heat/end phase before
         // checking for victory
         resetEntityPhase(Phase.PHASE_END);

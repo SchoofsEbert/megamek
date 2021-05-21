@@ -345,8 +345,15 @@ public class ServerTest extends TestCase {
         assertEquals(hus.size(), 0);
     }
 
-    public void testEndCurrentPhaseVictory(){
+    public void testEndCurrentPhaseVictory() throws NoSuchMethodException,
+            IllegalAccessException, InvocationTargetException{
+        game.setPhase(IGame.Phase.PHASE_VICTORY);
+        server.setGame(game);
+        Method endcurrentphase = Server.class.getDeclaredMethod("endCurrentPhase");
+        endcurrentphase.setAccessible(true);
+        endcurrentphase.invoke(server);
 
+        assertEquals(IGame.Phase.PHASE_LOUNGE, game.getPhase());
     }
 
     public void testEndCurrentPhaseEndReport(){
