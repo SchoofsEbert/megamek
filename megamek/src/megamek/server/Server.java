@@ -2711,30 +2711,7 @@ public class Server implements Runnable {
                 changePhase(IGame.Phase.PHASE_MOVEMENT);
                 break;
             case PHASE_END: //TODO INTEREST
-                // remove any entities that died in the heat/end phase before
-                // checking for victory
-                resetEntityPhase(IGame.Phase.PHASE_END);
-                boolean victory = victory(); // note this may add reports
-                // check phase report
-                // HACK: hardcoded message ID check
-                if ((vPhaseReport.size() > 3) || ((vPhaseReport.size() > 1)
-                        && (vPhaseReport.elementAt(1).messageId != 1205))) {
-                    gameserver.getGame().addReports(vPhaseReport);
-                    changePhase(IGame.Phase.PHASE_END_REPORT);
-                } else {
-                    // just the heat and end headers, so we'll add
-                    // the <nothing> label
-                    addReport(new Report(1205, Report.PUBLIC));
-                    gameserver.getGame().addReports(vPhaseReport);
-                    sendReport();
-                    if (victory) {
-                        changePhase(IGame.Phase.PHASE_VICTORY);
-                    } else {
-                        changePhase(IGame.Phase.PHASE_INITIATIVE);
-                    }
-                }
-                // Decrement the ASEWAffected counter
-                decrementASEWTurns();
+                endCurrentPhaseEnd();
 
                 break;
             case PHASE_END_REPORT:
@@ -2763,6 +2740,33 @@ public class Server implements Runnable {
                 ent.setHiddeActivationPhase(null);
             }
         }
+    }
+
+    private void endCurrentPhaseEnd() {
+        // remove any entities that died in the heat/end phase before
+        // checking for victory
+        resetEntityPhase(Phase.PHASE_END);
+        boolean victory = victory(); // note this may add reports
+        // check phase report
+        // HACK: hardcoded message ID check
+        if ((vPhaseReport.size() > 3) || ((vPhaseReport.size() > 1)
+                && (vPhaseReport.elementAt(1).messageId != 1205))) {
+            gameserver.getGame().addReports(vPhaseReport);
+            changePhase(Phase.PHASE_END_REPORT);
+        } else {
+            // just the heat and end headers, so we'll add
+            // the <nothing> label
+            addReport(new Report(1205, Report.PUBLIC));
+            gameserver.getGame().addReports(vPhaseReport);
+            sendReport();
+            if (victory) {
+                changePhase(Phase.PHASE_VICTORY);
+            } else {
+                changePhase(Phase.PHASE_INITIATIVE);
+            }
+        }
+        // Decrement the ASEWAffected counter
+        decrementASEWTurns();
     }
 
     private void sendSpecialHexDisplayPackets() {

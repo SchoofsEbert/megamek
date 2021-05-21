@@ -5,6 +5,7 @@ import megamek.MegaMek;
 import megamek.client.ui.swing.boardview.FieldofFireSprite;
 import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.*;
+import megamek.common.event.GameVictoryEvent;
 import megamek.common.icons.Camouflage;
 import megamek.common.logging.DefaultMmLogger;
 import megamek.common.logging.FakeLogger;
@@ -342,5 +343,54 @@ public class ServerTest extends TestCase {
         assertEquals(server.getvPhaseReport().size(), 4);
         assertEquals(al.size(), 0);
         assertEquals(hus.size(), 0);
+    }
+
+    public void testEndCurrentPhaseVictory(){
+
+    }
+
+    public void testEndCurrentPhaseEndReport(){
+
+        server.setGame(game);
+
+
+    }
+
+    public void testEndCurrentPhaseEnd() throws NoSuchMethodException, IllegalAccessException,
+            InvocationTargetException, NullPointerException, NoSuchFieldException{
+
+        game.setPhase(IGame.Phase.PHASE_END);
+        server.setGame(game);
+        assertEquals(IGame.Phase.PHASE_END, game.getPhase());
+
+        EloScore score = new EloScore();
+        score.win(1000);
+        score.win(500);
+        player.setScore(score);
+        IPlayer player2 = new Player(1, "Opponent");
+        EloScore score2 = new EloScore();
+        score2.win(1000);
+        score2.lose(1000);
+        score2.lose(500);
+        player2.setScore(score2);
+        game.addPlayer(1, player2);
+
+        Method endcurrentphase = Server.class.getDeclaredMethod("endCurrentPhase");
+        endcurrentphase.setAccessible(true);
+
+        VictoryResult won = Mockito.mock(VictoryResult.class);
+        Mockito.when(won.isDraw()).thenReturn(false);
+        Mockito.when(won.victory()).thenReturn(true);
+        Mockito.when(won.getWinningPlayer()).thenReturn(1);
+
+        Victory vic = Mockito.mock(Victory.class);
+        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(won);
+        Field victory = Game.class.getDeclaredField("victory");
+        victory.setAccessible(true);
+        victory.set(game, vic);
+
+        endcurrentphase.invoke(server);
+
+        assertEquals(IGame.Phase.PHASE_VICTORY, game.getPhase());
     }
 }
