@@ -2714,16 +2714,9 @@ public class Server implements Runnable {
                 endCurrentPhaseEnd();
                 break;
             case PHASE_END_REPORT:
-                if (changePlayersTeam) {
-                    processTeamChange();
-                }
-                if (victory()) {
-                    changePhase(IGame.Phase.PHASE_VICTORY);
-                } else {
-                    changePhase(IGame.Phase.PHASE_INITIATIVE);
-                }
+                endCurrentPhaseEndReport();
                 break;
-            case PHASE_VICTORY: //TODO INTEREST: THIS IS THE VERY LAST PHASE
+            case PHASE_VICTORY:
                 endCurrentPhaseVictory();
                 break;
             default:
@@ -2738,7 +2731,18 @@ public class Server implements Runnable {
         }
     }
 
-    private void endCurrentPhaseVictory() {
+    private void endCurrentPhaseEndReport() {
+        if (changePlayersTeam) {
+            processTeamChange();
+        }
+        if (victory()) {
+            changePhase(Phase.PHASE_VICTORY);
+        } else {
+            changePhase(Phase.PHASE_INITIATIVE);
+        }
+    }
+
+    private void endCurrentPhaseVictory() { //TODO move to GameServer/GameLogic
         GameVictoryEvent gve = new GameVictoryEvent(this, gameserver.getGame());
         gameserver.getGame().processGameEvent(gve);
         transmitGameVictoryEventToAll();

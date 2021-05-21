@@ -356,10 +356,76 @@ public class ServerTest extends TestCase {
         assertEquals(IGame.Phase.PHASE_LOUNGE, game.getPhase());
     }
 
-    public void testEndCurrentPhaseEndReport(){
-
+    public void testEndCurrentPhaseEndReport1() throws NoSuchMethodException,
+            IllegalAccessException, NoSuchFieldException, NullPointerException ,
+            InvocationTargetException{
+        game.setPhase(IGame.Phase.PHASE_END_REPORT);
         server.setGame(game);
 
+        EloScore score = new EloScore();
+        score.win(1000);
+        score.win(500);
+        player.setScore(score);
+        IPlayer player2 = new Player(1, "Opponent");
+        EloScore score2 = new EloScore();
+        score2.win(1000);
+        score2.lose(1000);
+        score2.lose(500);
+        player2.setScore(score2);
+        game.addPlayer(1, player2);
+
+        Method endcurrentphase = Server.class.getDeclaredMethod("endCurrentPhase");
+        endcurrentphase.setAccessible(true);
+
+        VictoryResult won = Mockito.mock(VictoryResult.class);
+        Mockito.when(won.victory()).thenReturn(true);
+        Mockito.when(won.getWinningPlayer()).thenReturn(1);
+
+        Victory vic = Mockito.mock(Victory.class);
+        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(won);
+        Field victory = Game.class.getDeclaredField("victory");
+        victory.setAccessible(true);
+        victory.set(game, vic);
+
+        endcurrentphase.invoke(server);
+
+        assertEquals(IGame.Phase.PHASE_VICTORY, game.getPhase());
+
+    }
+
+    public void testEndCurrentPhaseEndReport2() throws NoSuchMethodException,
+            IllegalAccessException, NoSuchFieldException, NullPointerException ,
+            InvocationTargetException{
+        game.setPhase(IGame.Phase.PHASE_END_REPORT);
+        server.setGame(game);
+
+        EloScore score = new EloScore();
+        score.win(1000);
+        score.lose(1000);
+        score.lose(500);
+        player.setScore(score);
+        IPlayer player2 = new Player(1, "Opponent");
+        EloScore score2 = new EloScore();
+        score2.win(1000);
+        score2.win(500);
+        player2.setScore(score2);
+        game.addPlayer(1, player2);
+
+        Method endcurrentphase = Server.class.getDeclaredMethod("endCurrentPhase");
+        endcurrentphase.setAccessible(true);
+
+        VictoryResult won = Mockito.mock(VictoryResult.class);
+        Mockito.when(won.victory()).thenReturn(false);
+
+        Victory vic = Mockito.mock(Victory.class);
+        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(won);
+        Field victory = Game.class.getDeclaredField("victory");
+        victory.setAccessible(true);
+        victory.set(game, vic);
+
+        endcurrentphase.invoke(server);
+
+        assertEquals(IGame.Phase.PHASE_INITIATIVE_REPORT, game.getPhase());
 
     }
 
