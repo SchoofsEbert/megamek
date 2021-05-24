@@ -2,6 +2,7 @@ package megamek.common;
 
 import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.event.GameListener;
+import megamek.common.event.GameVictoryEvent;
 import megamek.common.icons.Camouflage;
 import megamek.common.weapons.AttackHandler;
 import megamek.common.weapons.WeaponHandler;
@@ -291,6 +292,13 @@ public class GameLogic {
                 }
             }
         }
+    }
+
+    public void endCurrentPhaseVictory() {
+        GameVictoryEvent gve = new GameVictoryEvent(this, game);
+        game.processGameEvent(gve);
+        server.transmitGameVictoryEventToAll();
+        server.resetGame();
     }
 
     //TODO set to private once refactoring is done

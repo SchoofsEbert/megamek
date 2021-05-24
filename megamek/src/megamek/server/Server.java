@@ -2742,11 +2742,9 @@ public class Server implements Runnable {
         }
     }
 
-    private void endCurrentPhaseVictory() { //TODO move to GameServer/GameLogic
-        GameVictoryEvent gve = new GameVictoryEvent(this, gameserver.getGame());
-        gameserver.getGame().processGameEvent(gve);
-        transmitGameVictoryEventToAll();
-        resetGame();
+    // Moved to GameLogic
+    private void endCurrentPhaseVictory() {
+        gameserver.endCurrentPhaseVictory();
     }
 
     private void endCurrentPhaseEnd() { //TODO move to GameServer/GameLogic
@@ -30350,7 +30348,7 @@ public class Server implements Runnable {
     /**
      * Sends out the gameserver.getGame() victory event to all connections
      */
-    private void transmitGameVictoryEventToAll() {
+    public void transmitGameVictoryEventToAll() {
         for (IConnection conn : connections) {
             send(conn.getId(), new Packet(Packet.COMMAND_GAME_VICTORY_EVENT));
         }

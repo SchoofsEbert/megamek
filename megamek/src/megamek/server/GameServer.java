@@ -286,4 +286,8 @@ public class GameServer extends ServerRefactored{
     public void updatePlayerScores() {
         gamelogic.updatePlayerScores();
     }
+
+    public void endCurrentPhaseVictory() {
+        gamelogic.endCurrentPhaseVictory();
+    }
 }
