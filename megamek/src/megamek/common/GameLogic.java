@@ -4,6 +4,7 @@ import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.event.GameListener;
 import megamek.common.event.GameVictoryEvent;
 import megamek.common.icons.Camouflage;
+import megamek.common.options.OptionsConstants;
 import megamek.common.weapons.AttackHandler;
 import megamek.common.weapons.WeaponHandler;
 import megamek.server.Server;
@@ -297,8 +298,21 @@ public class GameLogic {
     public void endCurrentPhaseVictory() {
         GameVictoryEvent gve = new GameVictoryEvent(this, game);
         game.processGameEvent(gve);
-        server.transmitGameVictoryEventToAll();
-        server.resetGame();
+    }
+
+    public void PrepareEntitiesForVictory() {
+        for (Iterator<Entity> ents = game.getEntities(); ents.hasNext(); ) {
+            Entity entity = ents.next();
+            if ((entity.isFighter()) && !(entity instanceof FighterSquadron)) {
+                if (entity.isPartOfFighterSquadron() || entity.isCapitalFighter()) {
+                    ((IAero) entity).doDisbandDamage();
+                }
+            }
+            if (game.getOptions().booleanOption(OptionsConstants.ADVAERORULES_AERO_SANITY)
+                    && (entity instanceof Aero)) {
+                ((Aero) entity).fixArmorSI();
+            }
+        }
     }
 
     //TODO set to private once refactoring is done

@@ -4670,4 +4670,33 @@ public class Aero extends Entity implements IAero, IBomber {
     public void setEjecting(boolean ejecting) {
         this.ejecting = ejecting;
     }
+
+    public void fixArmorSI() {
+        int scale = 1;
+        if (isCapitalScale()) {
+            scale = 10;
+        }
+        int currentSI = getSI() / (2 * scale);
+        set0SI(get0SI() / (2 * scale));
+        if (currentSI > 0) {
+            setSI(currentSI);
+        }
+        //Fix for #587. MHQ tracks fighters at standard scale and doesn't (currently)
+        //track squadrons. Squadrons don't save to MUL either, so... only convert armor for JS/WS/SS?
+        //Do we ever need to save capital fighter armor to the final MUL or entityStatus?
+        if (!hasETypeFlag(Entity.ETYPE_JUMPSHIP)) {
+            scale = 1;
+        }
+        if (scale > 1) {
+            for (int loc = 0; loc < locations(); loc++) {
+                int currentArmor = getArmor(loc) / scale;
+                if (getOArmor(loc) > 0) {
+                    initializeArmor(getOArmor(loc) / scale, loc);
+                }
+                if (getArmor(loc) > 0) {
+                    setArmor(currentArmor, loc);
+                }
+            }
+        }
+    }
 }

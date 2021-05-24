@@ -5,6 +5,7 @@ import megamek.common.*;
 import megamek.common.event.GameListener;
 import megamek.common.net.IConnection;
 import megamek.common.net.Packet;
+import megamek.common.options.OptionsConstants;
 import megamek.common.preference.PreferenceManager;
 import megamek.common.weapons.AttackHandler;
 import megamek.common.weapons.WeaponHandler;
@@ -237,8 +238,22 @@ public class GameServer extends ServerRefactored{
         }
     }
 
-
-
+    //TODO Once refactored vPhaseReport should be an attribute of GameServer / GameLogic
+    public void prepareForPhaseVictory() {
+        server.resetPlayersDone();
+        server.clearReports();
+        server.prepareVictoryReport();
+        gamelogic.getGame().addReports(server.vPhaseReport);
+        gamelogic.PrepareEntitiesForVictory();
+        server.send(server.createFullEntitiesPacket());
+        server.send(server.createReportPacket(null));
+        server.send(server.createEndOfGamePacket());
+    }
+    public void endCurrentPhaseVictory() {
+        gamelogic.endCurrentPhaseVictory();
+        server.transmitGameVictoryEventToAll();
+        server.resetGame();
+    }
 
 
     ////////TODO once refactored, these shortcut methods should be deleted.
@@ -285,9 +300,5 @@ public class GameServer extends ServerRefactored{
 
     public void updatePlayerScores() {
         gamelogic.updatePlayerScores();
-    }
-
-    public void endCurrentPhaseVictory() {
-        gamelogic.endCurrentPhaseVictory();
     }
 }
