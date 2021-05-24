@@ -314,7 +314,9 @@ public class Server implements Runnable {
     // canceling each other
     private Vector<PhysicalResult> physicalResults = new Vector<>();
 
-    private Vector<DynamicTerrainProcessor> terrainProcessors = new Vector<>(); //TODO INTER: only used in constructor and prepareForPhase
+    Vector<DynamicTerrainProcessor> terrainProcessors = new Vector<>(); //TODO INTER:
+    // - Switched from private to package-private, in next refactor move to GameServer
+    // - only used in constructor and prepareForPhase
 
     private Timer watchdogTimer = new Timer("Watchdog Timer");
 
@@ -342,12 +344,12 @@ public class Server implements Runnable {
      * Flag that is set to true when all players have voted to allow another
      * player to change teams.
      */
-    private boolean changePlayersTeam = false;
+    boolean changePlayersTeam = false; //TODO: Switched from private to package-private, in next refactor need to find better way
 
     /**
      * Stores a set of <code>Coords</code> that have changed during this phase.
      */
-    private Set<Coords> hexUpdateSet = new LinkedHashSet<>();
+    Set<Coords> hexUpdateSet = new LinkedHashSet<>(); //TODO: Switched from private to package-private, in next refactor move to GameServer
 
     private List<DemolitionCharge> explodingCharges = new ArrayList<>();
 
@@ -1290,7 +1292,7 @@ public class Server implements Runnable {
      * Called at the beginning of each phase. Sets and resets any entity
      * parameters that need to be reset.
      */
-    private void resetEntityPhase(IGame.Phase phase) {
+    void resetEntityPhase(IGame.Phase phase) { //TODO: Switched from private to package-private, in next refactor move to GameServer
         // first, mark doomed entities as destroyed and flag them
         Vector<Entity> toRemove = new Vector<>(0, 10);
         for (Iterator<Entity> e = gameserver.getGame().getEntities(); e.hasNext(); ) {
@@ -1438,7 +1440,7 @@ public class Server implements Runnable {
      * Called at the beginning of certain phases to make every active player not
      * ready.
      */
-    private void resetActivePlayersDone() { //TODO INTER: ONLY GAME
+    void resetActivePlayersDone() { //TODO: Switched from private to package-private, in next refactor move to gamelogic
         /*
          * if (isReportingPhase()) { return; }
          */
@@ -1688,7 +1690,7 @@ public class Server implements Runnable {
         return requestedTeam;
     }
 
-    private void processTeamChange() {
+    void processTeamChange() { //TODO: Switched from private to package-private, in next refactor add tests and move to gameServer
         if (playerChangingTeam != null) {
             playerChangingTeam.setTeam(requestedTeam);
             gameserver.getGame().setupTeams();
@@ -1936,7 +1938,7 @@ public class Server implements Runnable {
      *
      * @param phase the <code>int</code> id of the phase to change to
      */
-    private void changePhase(IGame.Phase phase) {
+    void changePhase(IGame.Phase phase) { //TODO: Switched from private to package-private, in next refactor write tests and move to GameServer
         gameserver.getGame().setLastPhase(gameserver.getGame().getPhase());
         gameserver.getGame().setPhase(phase);
 
@@ -2145,58 +2147,11 @@ public class Server implements Runnable {
     }
 
     private void prepareForPhaseEnd(Phase phase) {
-        resetEntityPhase(phase);
-        clearReports();
-        resolveHeat();
-        if  (gameserver.getGame().getPlanetaryConditions().isSandBlowing()
-            &&  (gameserver.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
-            addReport(resolveBlowingSandDamage());
-        }
-        addReport(resolveControlRolls());
-        addReport(checkForTraitors());
-        // write End Phase header
-        addReport(new Report(5005, Report.PUBLIC));
-        checkLayExplosives();
-        resolveHarJelRepairs();
-        resolveEmergencyCoolantSystem();
-        checkForSuffocation();
-        gameserver.getGame().getPlanetaryConditions().determineWind();
-        send(createPlanetaryConditionsPacket());
-
-        applyBuildingDamage();
-        addReport (gameserver.getGame().ageFlares());
-        send(createFlarePacket());
-        resolveAmmoDumps();
-        resolveCrewWakeUp();
-        resolveConsoleCrewSwaps();
-        resolveSelfDestruct();
-        resolveShutdownCrashes();
-        checkForIndustrialEndOfTurn();
-        resolveMechWarriorPickUp();
-        resolveVeeINarcPodRemoval();
-        resolveFortify();
-
-        // Moved this to the very end because it makes it difficult to see
-        // more important updates when you have 300+ messages of smoke filling
-        // whatever hex. Please don't move it above the other things again.
-        // Thanks! Ralgith - 2018/03/15
-        hexUpdateSet.clear();
-        for (DynamicTerrainProcessor tp : terrainProcessors) {
-            tp.doEndPhaseChanges(vPhaseReport);
-        }
-        sendChangedHexes(hexUpdateSet);
-
-        checkForObservers();
-        transmitAllPlayerUpdates();
-        entityAllUpdate();
+        gameserver.prepareForPhaseEnd(phase);
     }
 
     private void prepareForPhaseEndReport() {
-        resetActivePlayersDone();
-        sendReport();
-        if  (gameserver.getGame().getOptions().booleanOption(OptionsConstants.BASE_PARANOID_AUTOSAVE)) {
-            autoSave();
-        }
+        gameserver.prepareForPhaseEndReport();
     }
 
     private void prepareForPhaseVictory() {
@@ -2683,14 +2638,7 @@ public class Server implements Runnable {
     }
 
     private void endCurrentPhaseEndReport() {
-        if (changePlayersTeam) {
-            processTeamChange();
-        }
-        if (victory()) {
-            changePhase(Phase.PHASE_VICTORY);
-        } else {
-            changePhase(Phase.PHASE_INITIATIVE);
-        }
+        gameserver.endCurrentPhaseEndReport();
     }
 
     // Moved to GameLogic
@@ -2698,31 +2646,8 @@ public class Server implements Runnable {
         gameserver.endCurrentPhaseVictory();
     }
 
-    private void endCurrentPhaseEnd() { //TODO move to GameServer/GameLogic
-        // remove any entities that died in the heat/end phase before
-        // checking for victory
-        resetEntityPhase(Phase.PHASE_END);
-        boolean victory = victory(); // note this may add reports
-        // check phase report
-        // HACK: hardcoded message ID check
-        if ((vPhaseReport.size() > 3) || ((vPhaseReport.size() > 1)
-                && (vPhaseReport.elementAt(1).messageId != 1205))) {
-            gameserver.getGame().addReports(vPhaseReport);
-            changePhase(Phase.PHASE_END_REPORT);
-        } else {
-            // just the heat and end headers, so we'll add
-            // the <nothing> label
-            addReport(new Report(1205, Report.PUBLIC));
-            gameserver.getGame().addReports(vPhaseReport);
-            sendReport();
-            if (victory) {
-                changePhase(Phase.PHASE_VICTORY);
-            } else {
-                changePhase(Phase.PHASE_INITIATIVE);
-            }
-        }
-        // Decrement the ASEWAffected counter
-        decrementASEWTurns();
+    private void endCurrentPhaseEnd() {
+        gameserver.endCurrentPhaseEnd();
     }
 
     private void sendSpecialHexDisplayPackets() {
@@ -18304,7 +18229,7 @@ public class Server implements Runnable {
      * End-phase checks for laid explosives; check whether explosives are
      * touched off, or if we should report laying explosives
      */
-    private void checkLayExplosives() {
+    void checkLayExplosives() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         // Report continuing explosive work
         for (Entity e : gameserver.getGame().getEntitiesVector()) {
             if (!(e instanceof Infantry)) {
@@ -18744,7 +18669,7 @@ public class Server implements Runnable {
      * Each mech sinks the amount of heat appropriate to its current heat
      * capacity.
      */
-    private void resolveHeat() {
+    void resolveHeat() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Report r;
         // Heat phase header
         addReport(new Report(5000, Report.PUBLIC));
@@ -19587,7 +19512,7 @@ public class Server implements Runnable {
         }
     }
 
-    private void resolveEmergencyCoolantSystem() {
+    void resolveEmergencyCoolantSystem() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Entity e : gameserver.getGame().getEntitiesVector()) {
             if ((e instanceof Mech) && e.hasWorkingMisc(MiscType.F_EMERGENCY_COOLANT_SYSTEM)
                     && (e.heat > 13)) {
@@ -19614,7 +19539,7 @@ public class Server implements Runnable {
     /*
      * Resolve HarJel II/III repairs for Mechs so equipped.
      */
-    private void resolveHarJelRepairs() {
+    void resolveHarJelRepairs() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Report r;
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
             Entity entity = i.next();
@@ -20250,7 +20175,7 @@ public class Server implements Runnable {
         }
     }
 
-    private void checkForIndustrialEndOfTurn() {
+    void checkForIndustrialEndOfTurn() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         checkForIndustrialWaterDeath();
         checkForIndustrialUnstall();
         checkForIndustrialCrit(); // This might hit an actuator or gyro, so...
@@ -20326,7 +20251,7 @@ public class Server implements Runnable {
      * Checks to see if any entities are underwater (or in vacuum) with damaged
      * life support. Called during the end phase.
      */
-    private void checkForSuffocation() {
+    void checkForSuffocation() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext();) {
             final Entity entity = i.next();
             if ((null == entity.getPosition()) || entity.isOffBoard()) {
@@ -20695,7 +20620,7 @@ public class Server implements Runnable {
         return vPhaseReport;
     }
 
-    private Vector<Report> checkForTraitors() {
+    Vector<Report> checkForTraitors() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Vector<Report> vFullReport = new Vector<>();
         // check for traitors
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
@@ -20727,7 +20652,7 @@ public class Server implements Runnable {
     /**
      * Resolves all built up control rolls. Used only during end phase
      */
-    private Vector<Report> resolveControlRolls() {
+    Vector<Report> resolveControlRolls() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Vector<Report> vFullReport = new Vector<>();
         vFullReport.add(new Report(5001, Report.PUBLIC));
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
@@ -21195,7 +21120,7 @@ public class Server implements Runnable {
     /**
      * Make the rolls indicating whether any unconscious crews wake up
      */
-    private void resolveCrewWakeUp() {
+    void resolveCrewWakeUp() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
             final Entity e = i.next();
 
@@ -21242,7 +21167,7 @@ public class Server implements Runnable {
      * Check whether any <code>Entity</code> with a cockpit command console has been scheduled to swap
      * roles between the two crew members.
      */
-    private void resolveConsoleCrewSwaps() {
+    void resolveConsoleCrewSwaps() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
             final Entity e = i.next();
             if (e.getCrew().doConsoleRoleSwap()) {
@@ -21261,7 +21186,7 @@ public class Server implements Runnable {
     /*
      * Resolve any outstanding self destructions...
      */
-    private void resolveSelfDestruct() {
+    void resolveSelfDestruct() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Entity e : gameserver.getGame().getEntitiesVector()) {
             if (e.getSelfDestructing()) {
                 e.setSelfDestructing(false);
@@ -21278,7 +21203,7 @@ public class Server implements Runnable {
      * Resolve any outstanding crashes from shutting down and being airborne
      * VTOL or WiGE...
      */
-    private void resolveShutdownCrashes() {
+    void resolveShutdownCrashes() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Entity e : gameserver.getGame().getEntitiesVector()) {
             if (e.isShutDown() && e.isAirborneVTOLorWIGE()
                 && !(e.isDestroyed() || e.isDoomed())) {
@@ -28422,7 +28347,7 @@ public class Server implements Runnable {
      * Report: - Any ammo dumps beginning the following round. - Any ammo dumps
      * that have ended with the end of this round.
      */
-    private void resolveAmmoDumps() {
+    void resolveAmmoDumps() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Report r;
         for (Entity entity : gameserver.getGame().getEntitiesVector()) {
             for (Mounted m : entity.getAmmo()) {
@@ -29140,7 +29065,7 @@ public class Server implements Runnable {
      * Send the complete list of entities to the players. If double_blind is in
      * effect, enforce it by filtering the entities
      */
-    private void entityAllUpdate() {
+    void entityAllUpdate() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         // If double-blind is in effect, filter each players' list individually,
         // and then quit out...
         if (doBlind()) {
@@ -30340,7 +30265,7 @@ public class Server implements Runnable {
     /**
      * Sends out the player info updates for all players to all connections
      */
-    private void transmitAllPlayerUpdates() {
+    void transmitAllPlayerUpdates() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Enumeration<IPlayer> i = gameserver.getGame().getPlayers(); i.hasMoreElements(); ) {
             final IPlayer player = i.nextElement();
             if (null != player) {
@@ -30402,7 +30327,7 @@ public class Server implements Runnable {
     /**
      * Creates a packet containing the planetary conditions
      */
-    private Packet createPlanetaryConditionsPacket() {
+    Packet createPlanetaryConditionsPacket() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         return new Packet(Packet.COMMAND_SENDING_PLANETARY_CONDITIONS,
                           gameserver.getGame().getPlanetaryConditions());
     }
@@ -30773,7 +30698,7 @@ public class Server implements Runnable {
     /**
      * Creates a packet containing flares
      */
-    private Packet createFlarePacket() {
+    Packet createFlarePacket() { //TODO: Switched from private to package-private, in next refactor move to GameServer
 
         return new Packet(Packet.COMMAND_SENDING_FLARES, gameserver.getGame().getFlares());
     }
@@ -30798,7 +30723,7 @@ public class Server implements Runnable {
         send(packet);
     }
 
-    private void sendReport() {
+    void sendReport() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         sendReport(false);
     }
 
@@ -32141,7 +32066,7 @@ public class Server implements Runnable {
      * Apply this phase's damage to all buildings. Buildings may collapse due to
      * damage.
      */
-    private void applyBuildingDamage() {
+    void applyBuildingDamage() { //TODO: Switched from private to package-private, in next refactor move to GameServer
 
         // Walk through the buildings in the gameserver.getGame().
         // Build the collapse and update vectors as you go.
@@ -33892,7 +33817,7 @@ public class Server implements Runnable {
      * Checks if ejected MechWarriors are eligible to be picked up, and if so,
      * captures them or picks them up
      */
-    private void resolveMechWarriorPickUp() {
+    void resolveMechWarriorPickUp() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Report r;
 
         // fetch all mechWarriors that are not picked up
@@ -34092,7 +34017,7 @@ public class Server implements Runnable {
      * round NOTE: this is not quite what the rules say, the player should be
      * able to choose whether or not to remove all iNarc Pods that are attached.
      */
-    private void resolveVeeINarcPodRemoval() {
+    void resolveVeeINarcPodRemoval() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Iterator<Entity> vees = gameserver.getGame().getSelectedEntities(
                 entity -> (entity instanceof Tank) && (entity.mpUsed == 0));
         boolean canSwipePods;
@@ -34459,7 +34384,7 @@ public class Server implements Runnable {
      * Add a whole lotta Reports to the players report queues as well as the
      * Master report queue vPhaseReport.
      */
-    private void addReport(Vector<Report> reports) {
+    void addReport(Vector<Report> reports) { //TODO: Switched from private to package-private, in next refactor move to GameServer
         vPhaseReport.addAll(reports);
     }
 
@@ -35215,7 +35140,7 @@ public class Server implements Runnable {
     /**
      * Check to see if blowing sand caused damage to airborne VTOL/WIGEs
      */
-    private Vector<Report> resolveBlowingSandDamage() {
+    Vector<Report> resolveBlowingSandDamage() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Vector<Report> vFullReport = new Vector<>();
         vFullReport.add(new Report(5002, Report.PUBLIC));
         int damage_bonus = Math.max(0, gameserver.getGame().getPlanetaryConditions().getWindStrength()
