@@ -133,21 +133,13 @@ public class GameServer extends ServerRefactored{
         }
 
         // check if they're connecting with the same name as a ghost player
-        for (Enumeration<IPlayer> i = gamelogic.getGame().getPlayers(); i.hasMoreElements(); ) {
-            IPlayer player = i.nextElement();
-            if (player.getName().equals(name)) {
-                if (player.isGhost()) {
-
-                    returning = true;
-                    player.setGhost(false);
-                    // switch id
-                    connId = player.getId();
-                    conn.setId(connId);
-                }
-            }
+        int existing_connId = gamelogic.getGhostConnIdByName(name);
+        returning = existing_connId >= 0;
+        if(returning) {
+            connId = existing_connId;
+            conn.setId(connId);
         }
-
-        if (!returning) {
+        else {
             // Check to avoid duplicate names...
             name = gamelogic.correctDupeName(name);
             server.sendToPending(connId, new Packet(Packet.COMMAND_SERVER_CORRECT_NAME, name));

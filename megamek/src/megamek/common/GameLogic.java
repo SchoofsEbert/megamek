@@ -331,6 +331,24 @@ public class GameLogic {
     public static String getColorForPlayer(IPlayer p) {
         return "<B><font color='" + p.getColour().getHexString(0x00F0F0F0) + "'>" + p.getName() + "</font></B>";
     }
+
+    /**
+     * Searches for the connectionID of an existing ghost by name
+     * @param name name of the ghost to search for
+     * @return connID of ghost, if exists, otherwise -1
+     */
+    public int getGhostConnIdByName(String name) {
+        for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
+            IPlayer player = i.nextElement();
+            if (player.getName().equals(name)) {
+                if (player.isGhost()) {
+                    player.setGhost(false);
+                    return player.getId();
+                }
+            }
+        }
+        return -1;
+    }
 }
 
 
