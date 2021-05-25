@@ -164,9 +164,7 @@ public class GameServer extends ServerRefactored{
         }
 
         // right, switch the connection into the "active" bin
-        server.connectionsPending.removeElement(conn);
-        server.connections.addElement(conn);
-        server.connectionIds.put(conn.getId(), conn);
+        switchConnection(conn);
 
         // add and validate the player info
         if (!returning) {
@@ -174,11 +172,7 @@ public class GameServer extends ServerRefactored{
         }
 
         // if it is not the lounge phase, this player becomes an observer
-        IPlayer player = getPlayer(connId);
-        if ( (gamelogic.getGame().getPhase() != IGame.Phase.PHASE_LOUNGE) && (null != player)
-                &&  (gamelogic.getGame().getEntitiesOwnedBy(player) < 1)) {
-            player.setObserver(true);
-        }
+        makePlayerObserverIfNotLounge(connId);
 
         sendPlayerMatchSetUp(connId);
 
@@ -200,6 +194,20 @@ public class GameServer extends ServerRefactored{
 
         getPlayerConnectionDetails(connId, showIPAddressesInChat);
 
+    }
+
+    private void makePlayerObserverIfNotLounge(int connId) {
+        IPlayer player = getPlayer(connId);
+        if ( (gamelogic.getGame().getPhase() != IGame.Phase.PHASE_LOUNGE) && (null != player)
+                &&  (gamelogic.getGame().getEntitiesOwnedBy(player) < 1)) {
+            player.setObserver(true);
+        }
+    }
+
+    private void switchConnection(IConnection conn) {
+        server.connectionsPending.removeElement(conn);
+        server.connections.addElement(conn);
+        server.connectionIds.put(conn.getId(), conn);
     }
 
     private void sendPlayerMatchSetUp(int connId) {
