@@ -294,6 +294,12 @@ public class ServerTest extends TestCase {
         assertEquals(player2.getScore().getTotalScore(), 912);
     }
 
+    private void prepareForPhase(IGame.Phase phase) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method prepareforphase = Server.class.getDeclaredMethod("prepareForPhase", IGame.Phase.class);
+        prepareforphase.setAccessible(true);
+        prepareforphase.invoke(server, phase);
+
+    }
     public void testPrepareForPhaseVictory() throws  IllegalAccessException, NoSuchMethodException,
             InvocationTargetException, NoSuchFieldException {
         server.setGame(game);
@@ -325,19 +331,23 @@ public class ServerTest extends TestCase {
             IllegalAccessException, NoSuchFieldException, NullPointerException{
         server.setGame(game);
 
-        Method prepareforphase = Server.class.getDeclaredMethod("prepareForPhase", IGame.Phase.class);
-        prepareforphase.setAccessible(true);
-        prepareforphase.invoke(server, IGame.Phase.PHASE_END);
-
-        Object s = Server.class;
-
         Field explodingcharges = Server.class.getDeclaredField("explodingCharges");
         explodingcharges.setAccessible(true);
-        ArrayList al = (ArrayList) explodingcharges.get(server);
-
+        List<Building.DemolitionCharge> dem = new ArrayList<>();
+        dem.add(new Building.DemolitionCharge(0,-1,new Coords(5, 5)));
+        explodingcharges.set(server, dem);
         Field hexupdateset = Server.class.getDeclaredField("hexUpdateSet");
         hexupdateset.setAccessible(true);
-        Set hus = (Set) hexupdateset.get(server);
+        Set<Coords> hex = new LinkedHashSet<>();
+        hex.add(new Coords(5,5));
+        hexupdateset.set(server, hex);
+        server.getGame().addIlluminatedPosition(new Coords(5, 5));
+
+        prepareForPhase(IGame.Phase.PHASE_END);
+
+
+        List<Building.DemolitionCharge> al = (List<Building.DemolitionCharge>) explodingcharges.get(server);
+        Set<Coords> hus = (Set<Coords>) hexupdateset.get(server);
 
         assertEquals(server.getGame().getIlluminatedPositions().size(), 0);
         assertEquals(server.getvPhaseReport().size(), 4);

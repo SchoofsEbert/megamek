@@ -116,7 +116,7 @@ public class Building implements Serializable {
      */
     private Map<Coords, Boolean> burning = new HashMap<Coords, Boolean>();
 
-    public class DemolitionCharge implements Serializable {
+    public static class DemolitionCharge implements Serializable {
         /**
          *
          */
