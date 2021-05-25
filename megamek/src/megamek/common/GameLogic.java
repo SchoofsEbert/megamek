@@ -48,9 +48,38 @@ public class GameLogic {
             getGame().addGameListener(listener);
         }
 
-        List<Integer> orphanEntities = new ArrayList<>();
+
 
         // reattach the transient fields and ghost the players
+        reattachEntities();
+        game.setOutOfGameEntitiesVector(game.getOutOfGameEntitiesVector());
+        ghostPlayers();
+
+        // might need to restore weapon type for some attacks that take multiple
+        // turns (like artillery)
+        restoreWeaponTypes();
+    }
+
+    private void ghostPlayers() {
+        for (Enumeration<IPlayer> e = game.getPlayers(); e.hasMoreElements(); ) {
+            IPlayer p = e.nextElement();
+            p.setGame(game);
+            p.setGhost(true);
+        }
+    }
+
+    private void restoreWeaponTypes() {
+        for (Enumeration<AttackHandler> a = game.getAttacks(); a
+                .hasMoreElements(); ) {
+            AttackHandler handler = a.nextElement();
+            if (handler instanceof WeaponHandler) {
+                ((WeaponHandler) handler).restore();
+            }
+        }
+    }
+
+    private void reattachEntities() {
+        List<Integer> orphanEntities = new ArrayList<>();
         for (Iterator<Entity> e = game.getEntities(); e.hasNext(); ) {
             Entity ent = e.next();
             ent.setGame(game);
@@ -68,25 +97,7 @@ public class GameLogic {
                 ((Tank) ent).setBAGrabBars();
             }
         }
-
         game.removeEntities(orphanEntities, IEntityRemovalConditions.REMOVE_UNKNOWN);
-
-        game.setOutOfGameEntitiesVector(game.getOutOfGameEntitiesVector());
-        for (Enumeration<IPlayer> e = game.getPlayers(); e.hasMoreElements(); ) {
-            IPlayer p = e.nextElement();
-            p.setGame(game);
-            p.setGhost(true);
-        }
-        // might need to restore weapon type for some attacks that take multiple
-        // turns (like artillery)
-        for (Enumeration<AttackHandler> a = game.getAttacks(); a
-                .hasMoreElements(); ) {
-            AttackHandler handler = a.nextElement();
-            if (handler instanceof WeaponHandler) {
-                ((WeaponHandler) handler).restore();
-            }
-        }
-
     }
 
     /**
@@ -96,10 +107,7 @@ public class GameLogic {
         return game;
     }
 
-    /**
-     * Adds a new player to the game
-     */
-    public IPlayer addNewPlayer(int connId, String name) {
+    private int getNewTeam() {
         int team = IPlayer.TEAM_UNASSIGNED;
         if  (game.getPhase() == IGame.Phase.PHASE_LOUNGE) {
             team = IPlayer.TEAM_NONE;
@@ -110,13 +118,16 @@ public class GameLogic {
             }
             team++;
         }
-        IPlayer newPlayer = new Player(connId, name);
-        PlayerColour colour = newPlayer.getColour();
+        return team;
+    }
+
+    private PlayerColour getNewColour(IPlayer player) {
+        PlayerColour colour = player.getColour();
         Enumeration<IPlayer> players = game.getPlayers();
         final PlayerColour[] colours = PlayerColour.values();
         while (players.hasMoreElements()) {
             final IPlayer p = players.nextElement();
-            if (p.getId() == newPlayer.getId()) {
+            if (p.getId() == player.getId()) {
                 continue;
             }
 
@@ -124,6 +135,16 @@ public class GameLogic {
                 colour = colours[colour.ordinal() + 1];
             }
         }
+        return colour;
+    }
+
+    /**
+     * Adds a new player to the game
+     */
+    public IPlayer addNewPlayer(int connId, String name) {
+        int team = getNewTeam();
+        IPlayer newPlayer = new Player(connId, name);
+        PlayerColour colour = getNewColour(newPlayer);
         newPlayer.setColour(colour);
         newPlayer.setCamoCategory(Camouflage.COLOUR_CAMOUFLAGE);
         newPlayer.setCamoFileName(colour.name());
