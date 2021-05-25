@@ -1292,7 +1292,8 @@ public class Server implements Runnable {
      * Called at the beginning of each phase. Sets and resets any entity
      * parameters that need to be reset.
      */
-    void resetEntityPhase(IGame.Phase phase) { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    //TODO: Switched from private to package-private, split between GameLogic and GameServer
+    void resetEntityPhase(IGame.Phase phase) {
         // first, mark doomed entities as destroyed and flag them
         Vector<Entity> toRemove = new Vector<>(0, 10);
         for (Iterator<Entity> e = gameserver.getGame().getEntities(); e.hasNext(); ) {

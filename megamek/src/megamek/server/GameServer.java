@@ -249,10 +249,104 @@ public class GameServer extends ServerRefactored{
         server.send(server.createReportPacket(null));
         server.send(server.createEndOfGamePacket());
     }
+
+    public void prepareForPhaseEnd(IGame.Phase phase){
+        server.resetEntityPhase(phase);
+        server.clearReports();
+        server.resolveHeat();
+        if  (gamelogic.getGame().getPlanetaryConditions().isSandBlowing()
+                &&  (gamelogic.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
+            server.addReport(server.resolveBlowingSandDamage());
+        }
+        server.addReport(server.resolveControlRolls());
+        server.addReport(server.checkForTraitors());
+        // write End Phase header
+        server.addReport(new Report(5005, Report.PUBLIC));
+        server.checkLayExplosives();
+        server.resolveHarJelRepairs();
+        server.resolveEmergencyCoolantSystem();
+        server.checkForSuffocation();
+        gamelogic.getGame().getPlanetaryConditions().determineWind();
+        server.send(server.createPlanetaryConditionsPacket());
+
+        server.applyBuildingDamage();
+        server.addReport(getGame().ageFlares());
+        server.send(server.createFlarePacket());
+        server.resolveAmmoDumps();
+        server.resolveCrewWakeUp();
+        server.resolveConsoleCrewSwaps();
+        server.resolveSelfDestruct();
+        server.resolveShutdownCrashes();
+        server.checkForIndustrialEndOfTurn();
+        server.resolveMechWarriorPickUp();
+        server.resolveVeeINarcPodRemoval();
+        server.resolveFortify();
+
+        // Moved this to the very end because it makes it difficult to see
+        // more important updates when you have 300+ messages of smoke filling
+        // whatever hex. Please don't move it above the other things again.
+        // Thanks! Ralgith - 2018/03/15
+        server.hexUpdateSet.clear();
+        for (DynamicTerrainProcessor tp : server.terrainProcessors) {
+            tp.doEndPhaseChanges(server.vPhaseReport);
+        }
+        server.sendChangedHexes(server.hexUpdateSet);
+
+        server.checkForObservers();
+        server.transmitAllPlayerUpdates();
+        server.entityAllUpdate();
+    }
+
+    public void prepareForPhaseEndReport(){
+        server.resetActivePlayersDone();
+        server.sendReport();
+        if  (gamelogic.getGame().getOptions().booleanOption(OptionsConstants.BASE_PARANOID_AUTOSAVE)) {
+            server.autoSave();
+        }
+    }
+
     public void endCurrentPhaseVictory() {
         gamelogic.endCurrentPhaseVictory();
         server.transmitGameVictoryEventToAll();
         server.resetGame();
+    }
+
+    public void endCurrentPhaseEnd(){
+        // remove any entities that died in the heat/end phase before
+        // checking for victory
+        server.resetEntityPhase(IGame.Phase.PHASE_END);
+        boolean victory = gamelogic.victory(); // note this may add reports
+        // check phase report
+        // HACK: hardcoded message ID check
+        if ((server.vPhaseReport.size() > 3) || ((server.vPhaseReport.size() > 1)
+                && (server.vPhaseReport.elementAt(1).messageId != 1205))) {
+            gamelogic.getGame().addReports(server.vPhaseReport);
+            server.changePhase(IGame.Phase.PHASE_END_REPORT);
+        } else {
+            // just the heat and end headers, so we'll add
+            // the <nothing> label
+            server.addReport(new Report(1205, Report.PUBLIC));
+            gamelogic.getGame().addReports(server.vPhaseReport);
+            server.sendReport();
+            if (victory) {
+                server.changePhase(IGame.Phase.PHASE_VICTORY);
+            } else {
+                server.changePhase(IGame.Phase.PHASE_INITIATIVE);
+            }
+        }
+        // Decrement the ASEWAffected counter
+        server.decrementASEWTurns();
+    }
+
+    public void endCurrentPhaseEndReport(){
+        if (server.changePlayersTeam) {
+            server.processTeamChange();
+        }
+        if (victory()) {
+            server.changePhase(IGame.Phase.PHASE_VICTORY);
+        } else {
+            server.changePhase(IGame.Phase.PHASE_INITIATIVE);
+        }
     }
 
 
@@ -300,98 +394,5 @@ public class GameServer extends ServerRefactored{
 
     public void updatePlayerScores() {
         gamelogic.updatePlayerScores();
-    }
-
-    public void endCurrentPhaseEndReport(){
-        if (server.changePlayersTeam) {
-            server.processTeamChange();
-        }
-        if (victory()) {
-            server.changePhase(IGame.Phase.PHASE_VICTORY);
-        } else {
-            server.changePhase(IGame.Phase.PHASE_INITIATIVE);
-        }
-    }
-
-    public void endCurrentPhaseEnd(){
-        // remove any entities that died in the heat/end phase before
-        // checking for victory
-        server.resetEntityPhase(IGame.Phase.PHASE_END);
-        boolean victory = victory(); // note this may add reports
-        // check phase report
-        // HACK: hardcoded message ID check
-        if ((server.vPhaseReport.size() > 3) || ((server.vPhaseReport.size() > 1)
-                && (server.vPhaseReport.elementAt(1).messageId != 1205))) {
-            getGame().addReports(server.vPhaseReport);
-            server.changePhase(IGame.Phase.PHASE_END_REPORT);
-        } else {
-            // just the heat and end headers, so we'll add
-            // the <nothing> label
-            server.addReport(new Report(1205, Report.PUBLIC));
-            getGame().addReports(server.vPhaseReport);
-            server.sendReport();
-            if (victory) {
-                server.changePhase(IGame.Phase.PHASE_VICTORY);
-            } else {
-                server.changePhase(IGame.Phase.PHASE_INITIATIVE);
-            }
-        }
-        // Decrement the ASEWAffected counter
-        server.decrementASEWTurns();
-    }
-
-    public void prepareForPhaseEnd(IGame.Phase phase){
-        server.resetEntityPhase(phase);
-        server.clearReports();
-        server.resolveHeat();
-        if  (getGame().getPlanetaryConditions().isSandBlowing()
-                &&  (getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
-            server.addReport(server.resolveBlowingSandDamage());
-        }
-        server.addReport(server.resolveControlRolls());
-        server.addReport(server.checkForTraitors());
-        // write End Phase header
-        server.addReport(new Report(5005, Report.PUBLIC));
-        server.checkLayExplosives();
-        server.resolveHarJelRepairs();
-        server.resolveEmergencyCoolantSystem();
-        server.checkForSuffocation();
-        getGame().getPlanetaryConditions().determineWind();
-        server.send(server.createPlanetaryConditionsPacket());
-
-        server.applyBuildingDamage();
-        server.addReport(getGame().ageFlares());
-        server.send(server.createFlarePacket());
-        server.resolveAmmoDumps();
-        server.resolveCrewWakeUp();
-        server.resolveConsoleCrewSwaps();
-        server.resolveSelfDestruct();
-        server.resolveShutdownCrashes();
-        server.checkForIndustrialEndOfTurn();
-        server.resolveMechWarriorPickUp();
-        server.resolveVeeINarcPodRemoval();
-        server.resolveFortify();
-
-        // Moved this to the very end because it makes it difficult to see
-        // more important updates when you have 300+ messages of smoke filling
-        // whatever hex. Please don't move it above the other things again.
-        // Thanks! Ralgith - 2018/03/15
-        server.hexUpdateSet.clear();
-        for (DynamicTerrainProcessor tp : server.terrainProcessors) {
-            tp.doEndPhaseChanges(server.vPhaseReport);
-        }
-        server.sendChangedHexes(server.hexUpdateSet);
-
-        server.checkForObservers();
-        server.transmitAllPlayerUpdates();
-        server.entityAllUpdate();
-    }
-
-    public void prepareForPhaseEndReport(){
-        server.resetActivePlayersDone();
-        server.sendReport();
-        if  (getGame().getOptions().booleanOption(OptionsConstants.BASE_PARANOID_AUTOSAVE)) {
-            server.autoSave();
-        }
     }
 }
