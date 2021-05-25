@@ -1,6 +1,10 @@
 package megamek.common;
 
-public class EloScore {
+import java.io.Serializable;
+
+public class EloScore implements Serializable {
+    private static final long serialVersionUID = 2405172041950251807L;
+
     private int win_lose;
     private int games;
     private int opponents;
