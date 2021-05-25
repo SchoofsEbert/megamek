@@ -62,21 +62,23 @@ public class GameServer extends ServerRefactored{
         String clientChecksum = (String) packet.getObject(1);
         String serverChecksum = MegaMek.getMegaMekSHA256();
         StringBuilder buf = new StringBuilder();
-        boolean needs = false;
-        needs = verifyVersion(version, buf, needs);
+        boolean correct = verifyVersion(version, buf);
         // print a message indicating client doesn't have jar file
         if (clientChecksum == null) {
-            needs = verifyVersionChecksumNull(version, buf, "client");
+            logVersionChecksumNull(version, buf, "Client");
             // print message indicating server doesn't have jar file
+            correct = false;
         } else if (serverChecksum == null) {
-            needs = verifyVersionChecksumNull(version, buf, "server");
+            logVersionChecksumNull(version, buf, "Server");
+            correct = false;
             // print message indicating a client/server checksum mismatch
         } else if (!clientChecksum.equals(serverChecksum)) {
-            needs = verifyVersionClientServerMismatch(version, clientChecksum, serverChecksum, buf);
+           logVersionClientServerMismatch(version, clientChecksum, serverChecksum, buf);
+           correct = false;
         }
 
         // Now, if we need to, send message!
-        if (needs) {
+        if (!correct) {
             IPlayer player = getPlayer(connId);
             if (null != player) {
                 //TODO this should be just sendServerChat once refactoring is done and the method is moved to ServerRefactored
@@ -90,8 +92,7 @@ public class GameServer extends ServerRefactored{
         }
     }
 
-    private boolean verifyVersionClientServerMismatch(String version, String clientChecksum, String serverChecksum, StringBuilder buf) {
-        boolean needs;
+    private void logVersionClientServerMismatch(String version, String clientChecksum, String serverChecksum, StringBuilder buf) {
         if (!version.equals(MegaMek.VERSION)) {
             buf.append(System.lineSeparator());
             buf.append(System.lineSeparator());
@@ -100,37 +101,26 @@ public class GameServer extends ServerRefactored{
                 .append(", Client reports: ").append(clientChecksum);
         MegaMek.getLogger().error("Client/Server Checksum Mismatch -- Client: " + clientChecksum
                 + " Server: " + serverChecksum);
-
-        needs = true;
-        return needs;
     }
 
 
-    private boolean verifyVersionChecksumNull(String version, StringBuilder buf, String kind) {
-        boolean needs;
+    private void logVersionChecksumNull(String version, StringBuilder buf, String kind) {
         if (!version.equals(MegaMek.VERSION)) {
             buf.append(System.lineSeparator()).append(System.lineSeparator());
         }
-        if (kind == "server") {
-            buf.append("Server Checksum is null. Server may not have a jar file");
-            MegaMek.getLogger().info("Server does not have a jar file");
-        } else if (kind == "client") {
-            buf.append("Client Checksum is null. Client may not have a jar file");
-            MegaMek.getLogger().info("Client does not have a jar file");
-        }
-        needs = true;
-        return needs;
+        buf.append(kind).append(" Checksum is null. ").append(kind).append("may not have a jar file");
+        MegaMek.getLogger().info(kind + " does not have a jar file");
     }
 
-    private boolean verifyVersion(String version, StringBuilder buf, boolean needs) {
+    private boolean verifyVersion(String version, StringBuilder buf) {
         if (!version.equals(MegaMek.VERSION)) {
             buf.append("Client/Server version mismatch. Server reports: ").append(MegaMek.VERSION)
                     .append(", Client reports: ").append(version);
             MegaMek.getLogger().error("Client/Server Version Mismatch -- Client: "
                     + version + " Server: " + MegaMek.VERSION);
-            needs = true;
+            return false;
         }
-        return needs;
+        return true;
     }
 
     /**
