@@ -62,21 +62,8 @@ public class GameServer extends ServerRefactored{
         String clientChecksum = (String) packet.getObject(1);
         String serverChecksum = MegaMek.getMegaMekSHA256();
         StringBuilder buf = new StringBuilder();
-        boolean correct = verifyVersion(version, buf);
+        boolean correct = verifyVersion(version, clientChecksum, serverChecksum, buf);
         // print a message indicating client doesn't have jar file
-        if (clientChecksum == null) {
-            logVersionChecksumNull(version, buf, "Client");
-            // print message indicating server doesn't have jar file
-            correct = false;
-        } else if (serverChecksum == null) {
-            logVersionChecksumNull(version, buf, "Server");
-            correct = false;
-            // print message indicating a client/server checksum mismatch
-        } else if (!clientChecksum.equals(serverChecksum)) {
-           logVersionClientServerMismatch(version, clientChecksum, serverChecksum, buf);
-           correct = false;
-        }
-
         // Now, if we need to, send message!
         if (!correct) {
             IPlayer player = getPlayer(connId);
@@ -92,35 +79,47 @@ public class GameServer extends ServerRefactored{
         }
     }
 
-    private void logVersionClientServerMismatch(String version, String clientChecksum, String serverChecksum, StringBuilder buf) {
-        if (!version.equals(MegaMek.VERSION)) {
-            buf.append(System.lineSeparator());
-            buf.append(System.lineSeparator());
-        }
-        buf.append("Client/Server checksum mismatch. Server reports: ").append(serverChecksum)
-                .append(", Client reports: ").append(clientChecksum);
-        MegaMek.getLogger().error("Client/Server Checksum Mismatch -- Client: " + clientChecksum
-                + " Server: " + serverChecksum);
+    private void logClientServerMismatch(String clientCode, String serverCode, String typeCode, StringBuilder buf) {
+        buf.append("Client/Server ").append(typeCode).append(" mismatch. Server reports: ").append(serverCode)
+                .append(", Client reports: ").append(clientCode);
+        MegaMek.getLogger().error("Client/Server "+typeCode+" Mismatch -- Client: " + clientCode
+                + " Server: " + serverCode);
     }
 
 
     private void logVersionChecksumNull(String version, StringBuilder buf, String kind) {
-        if (!version.equals(MegaMek.VERSION)) {
-            buf.append(System.lineSeparator()).append(System.lineSeparator());
-        }
         buf.append(kind).append(" Checksum is null. ").append(kind).append("may not have a jar file");
         MegaMek.getLogger().info(kind + " does not have a jar file");
     }
 
-    private boolean verifyVersion(String version, StringBuilder buf) {
+    private boolean verifyVersion(String version, String clientChecksum, String serverChecksum, StringBuilder buf) {
+        boolean correct = true;
         if (!version.equals(MegaMek.VERSION)) {
-            buf.append("Client/Server version mismatch. Server reports: ").append(MegaMek.VERSION)
-                    .append(", Client reports: ").append(version);
-            MegaMek.getLogger().error("Client/Server Version Mismatch -- Client: "
-                    + version + " Server: " + MegaMek.VERSION);
+            logClientServerMismatch(version, MegaMek.VERSION, "version", buf);
+            correct = false;
+        }
+        if (clientChecksum == null) {
+            if (!version.equals(MegaMek.VERSION)) {
+                buf.append(System.lineSeparator()).append(System.lineSeparator());
+            }
+            logVersionChecksumNull(version, buf, "Client");
+            return false;
+        } else if (serverChecksum == null) {
+            if (!version.equals(MegaMek.VERSION)) {
+                buf.append(System.lineSeparator()).append(System.lineSeparator());
+            }
+            logVersionChecksumNull(version, buf, "Server");
+            return false;
+            // print message indicating a client/server checksum mismatch
+        } else if (!clientChecksum.equals(serverChecksum)) {
+            if (!version.equals(MegaMek.VERSION)) {
+                buf.append(System.lineSeparator());
+                buf.append(System.lineSeparator());
+            }
+            logClientServerMismatch(clientChecksum, serverChecksum, "checksum", buf);
             return false;
         }
-        return true;
+        return correct;
     }
 
     /**

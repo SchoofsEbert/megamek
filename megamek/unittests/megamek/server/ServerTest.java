@@ -74,13 +74,29 @@ public class ServerTest extends TestCase {
     }
 
     //Moved to GameServer
-    public void testReceivePlayerVersion() {
+    public void testReceivePlayerVersionCorrect() {
         Object[] versionData = new Object[2];
         versionData[0] = MegaMek.VERSION;
         versionData[1] = MegaMek.getMegaMekSHA256();
         server.handle(0,new Packet(Packet.COMMAND_CLIENT_VERSIONS, versionData));
         Mockito.verify(logger, Mockito.times(1)).info("SUCCESS: Client/Server Version (" + MegaMek.VERSION + ") and Checksum ("
                 + MegaMek.getMegaMekSHA256() + ") matched");
+    }
+
+    public void testReceivePlayerVersionMismatch() {
+        Object[] versionData = new Object[2];
+        versionData[0] = "Faulty";
+        versionData[1] = MegaMek.getMegaMekSHA256();
+        server.handle(0,new Packet(Packet.COMMAND_CLIENT_VERSIONS, versionData));
+        Mockito.verify(logger, Mockito.times(1)).error("Client/Server version Mismatch -- Client: Faulty Server: "+MegaMek.VERSION);
+    }
+
+    public void testReceivePlayerVersionChecksumMismatch() {
+        Object[] versionData = new Object[2];
+        versionData[0] = MegaMek.VERSION;
+        versionData[1] = "Faulty";
+        server.handle(0,new Packet(Packet.COMMAND_CLIENT_VERSIONS, versionData));
+        Mockito.verify(logger, Mockito.times(1)).error("Client/Server checksum Mismatch -- Client: Faulty Server: " + MegaMek.getMegaMekSHA256());
     }
 
     private ArrayList<IConnection> sendPlayerNames(List<Integer> connIds, List<String> names) throws NoSuchFieldException, IllegalAccessException {
