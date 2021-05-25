@@ -170,17 +170,7 @@ public class GameServer extends ServerRefactored{
             player.setObserver(true);
         }
 
-        // send the player the motd
-        server.sendServerChat(connId, server.motd);
-
-        // send info that the player has connected
-        server.send(server.createPlayerConnectPacket(connId));
-
-        // tell them their local playerId
-        server.send(connId, new Packet(Packet.COMMAND_LOCAL_PN, connId));
-
-        // send current gameserver.getGame() info
-        server.sendCurrentInfo(connId);
+        sendPlayerMatchSetUp(connId);
 
         final boolean showIPAddressesInChat = PreferenceManager.getClientPreferences().getShowIPAddressesInChat();
 
@@ -198,6 +188,26 @@ public class GameServer extends ServerRefactored{
             // oh well.
         }
 
+        getPlayerConnectionDetails(connId, showIPAddressesInChat);
+
+    }
+
+    private void sendPlayerMatchSetUp(int connId) {
+        // send the player the motd
+        server.sendServerChat(connId, server.motd);
+
+        // send info that the player has connected
+        server.send(server.createPlayerConnectPacket(connId));
+
+        // tell them their local playerId
+        server.send(connId, new Packet(Packet.COMMAND_LOCAL_PN, connId));
+
+        // send current gameserver.getGame() info
+        server.sendCurrentInfo(connId);
+    }
+
+    private void getPlayerConnectionDetails(int connId, boolean showIPAddressesInChat) {
+        IPlayer player;
         MegaMek.getLogger().info("s: listening on port " + server.serverSocket.getLocalPort());
         if (showIPAddressesInChat) {
             // Send the port we're listening on. Only useful for the player
@@ -216,7 +226,6 @@ public class GameServer extends ServerRefactored{
             }
 
         } // Found the player
-
     }
 
     /**
