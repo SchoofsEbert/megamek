@@ -254,6 +254,45 @@ public class GameServer extends ServerRefactored{
         server.resetEntityPhase(phase);
         server.clearReports();
         server.resolveHeat();
+        checkGlobalDamage();
+
+        resolveDamage();
+
+        // Moved this to the very end because it makes it difficult to see
+        // more important updates when you have 300+ messages of smoke filling
+        // whatever hex. Please don't move it above the other things again.
+        // Thanks! Ralgith - 2018/03/15
+        updateField();
+    }
+
+    private void updateField() {
+        server.hexUpdateSet.clear();
+        for (DynamicTerrainProcessor tp : server.terrainProcessors) {
+            tp.doEndPhaseChanges(server.vPhaseReport);
+        }
+        server.sendChangedHexes(server.hexUpdateSet);
+
+        server.checkForObservers();
+        server.transmitAllPlayerUpdates();
+        server.entityAllUpdate();
+    }
+
+    private void resolveDamage() {
+        server.applyBuildingDamage();
+        server.addReport(getGame().ageFlares());
+        server.send(server.createFlarePacket());
+        server.resolveAmmoDumps();
+        server.resolveCrewWakeUp();
+        server.resolveConsoleCrewSwaps();
+        server.resolveSelfDestruct();
+        server.resolveShutdownCrashes();
+        server.checkForIndustrialEndOfTurn();
+        server.resolveMechWarriorPickUp();
+        server.resolveVeeINarcPodRemoval();
+        server.resolveFortify();
+    }
+
+    private void checkGlobalDamage() {
         if  (gamelogic.getGame().getPlanetaryConditions().isSandBlowing()
                 &&  (gamelogic.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
             server.addReport(server.resolveBlowingSandDamage());
@@ -268,33 +307,6 @@ public class GameServer extends ServerRefactored{
         server.checkForSuffocation();
         gamelogic.getGame().getPlanetaryConditions().determineWind();
         server.send(server.createPlanetaryConditionsPacket());
-
-        server.applyBuildingDamage();
-        server.addReport(getGame().ageFlares());
-        server.send(server.createFlarePacket());
-        server.resolveAmmoDumps();
-        server.resolveCrewWakeUp();
-        server.resolveConsoleCrewSwaps();
-        server.resolveSelfDestruct();
-        server.resolveShutdownCrashes();
-        server.checkForIndustrialEndOfTurn();
-        server.resolveMechWarriorPickUp();
-        server.resolveVeeINarcPodRemoval();
-        server.resolveFortify();
-
-        // Moved this to the very end because it makes it difficult to see
-        // more important updates when you have 300+ messages of smoke filling
-        // whatever hex. Please don't move it above the other things again.
-        // Thanks! Ralgith - 2018/03/15
-        server.hexUpdateSet.clear();
-        for (DynamicTerrainProcessor tp : server.terrainProcessors) {
-            tp.doEndPhaseChanges(server.vPhaseReport);
-        }
-        server.sendChangedHexes(server.hexUpdateSet);
-
-        server.checkForObservers();
-        server.transmitAllPlayerUpdates();
-        server.entityAllUpdate();
     }
 
     public void prepareForPhaseEndReport(){
