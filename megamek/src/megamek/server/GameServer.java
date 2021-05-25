@@ -66,10 +66,10 @@ public class GameServer extends ServerRefactored{
         needs = verifyVersion(version, buf, needs);
         // print a message indicating client doesn't have jar file
         if (clientChecksum == null) {
-            needs = verifyVersionClientChecksumNull(version, buf);
+            needs = verifyVersionChecksumNull(version, buf, "client");
             // print message indicating server doesn't have jar file
         } else if (serverChecksum == null) {
-            needs = verifyVersionServerChecksumNull(version, buf);
+            needs = verifyVersionChecksumNull(version, buf, "server");
             // print message indicating a client/server checksum mismatch
         } else if (!clientChecksum.equals(serverChecksum)) {
             needs = verifyVersionClientServerMismatch(version, clientChecksum, serverChecksum, buf);
@@ -105,24 +105,19 @@ public class GameServer extends ServerRefactored{
         return needs;
     }
 
-    private boolean verifyVersionServerChecksumNull(String version, StringBuilder buf) {
-        boolean needs;
-        if (!version.equals(MegaMek.VERSION)) {
-            buf.append(System.lineSeparator()).append(System.lineSeparator());
-        }
-        buf.append("Server Checksum is null. Server may not have a jar file");
-        MegaMek.getLogger().info("Server does not have a jar file");
-        needs = true;
-        return needs;
-    }
 
-    private boolean verifyVersionClientChecksumNull(String version, StringBuilder buf) {
+    private boolean verifyVersionChecksumNull(String version, StringBuilder buf, String kind) {
         boolean needs;
         if (!version.equals(MegaMek.VERSION)) {
             buf.append(System.lineSeparator()).append(System.lineSeparator());
         }
-        buf.append("Client Checksum is null. Client may not have a jar file");
-        MegaMek.getLogger().info("Client does not have a jar file");
+        if (kind == "server") {
+            buf.append("Server Checksum is null. Server may not have a jar file");
+            MegaMek.getLogger().info("Server does not have a jar file");
+        } else if (kind == "client") {
+            buf.append("Client Checksum is null. Client may not have a jar file");
+            MegaMek.getLogger().info("Client does not have a jar file");
+        }
         needs = true;
         return needs;
     }
