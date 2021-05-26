@@ -1,23 +1,14 @@
 package megamek.common;
 
 import junit.framework.TestCase;
-import megamek.MegaMek;
 import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.icons.Camouflage;
-import megamek.common.logging.FakeLogger;
-import megamek.common.logging.MMLogger;
-import megamek.common.net.IConnection;
-import megamek.server.GameServer;
 import megamek.server.Server;
 import megamek.server.victory.Victory;
 import megamek.server.victory.VictoryResult;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.util.List;
 
 public class GameLogicTest extends TestCase {
     Server server;
@@ -25,7 +16,6 @@ public class GameLogicTest extends TestCase {
     Game game;
     BipedMech entity;
     Player player;
-    //MMLogger logger;
 
     @Override
     public void setUp() throws Exception {
@@ -37,16 +27,13 @@ public class GameLogicTest extends TestCase {
         game.addPlayer(0, player);
         game.addEntity(entity);
 
-        //logger = Mockito.mock(FakeLogger.class);
-        //MegaMek.setLogger(logger);
-
         gamelogic = new GameLogic(server);
 
         gamelogic.setGame(game);
     }
 
     @Override
-    public void tearDown() throws Exception {
+    public void tearDown() {
         server.die();
     }
 
@@ -170,14 +157,6 @@ public class GameLogicTest extends TestCase {
         assertEquals(6800, player.getScore().getTotalScore());
         assertEquals(6400, player2.getScore().getTotalScore());
         assertEquals(6400, player3.getScore().getTotalScore());
-    }
-
-    private void endCurrentPhase(IGame.Phase phase) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        game.setPhase(phase);
-
-        Method endcurrentphase = Server.class.getDeclaredMethod("endCurrentPhase");
-        endcurrentphase.setAccessible(true);
-        endcurrentphase.invoke(server);
     }
 
     public void testGetGhostConnIdByNameExisting() {

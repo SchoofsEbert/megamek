@@ -13,8 +13,6 @@ import megamek.common.net.Packet;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -49,7 +47,7 @@ public class GameServerTest extends TestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
+    public void tearDown() {
         server.die();
     }
 

@@ -2,26 +2,18 @@ package megamek.server;
 
 import junit.framework.TestCase;
 import megamek.MegaMek;
-import megamek.client.ui.swing.boardview.FieldofFireSprite;
 import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.*;
-import megamek.common.event.GameVictoryEvent;
 import megamek.common.icons.Camouflage;
-import megamek.common.logging.DefaultMmLogger;
 import megamek.common.logging.FakeLogger;
 import megamek.common.logging.MMLogger;
 import megamek.common.net.ConnectionFactory;
 import megamek.common.net.IConnection;
 import megamek.common.net.Packet;
-import megamek.common.options.GameOptions;
-import megamek.common.weapons.ACAPHandler;
-import megamek.common.weapons.AttackHandler;
 import megamek.server.victory.Victory;
 import megamek.server.victory.VictoryResult;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,9 +21,6 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import static javax.swing.UIManager.get;
 
 public class ServerTest extends TestCase {
     Server server;
@@ -57,7 +46,7 @@ public class ServerTest extends TestCase {
     }
 
     @Override
-    public void tearDown() throws Exception {
+    public void tearDown() {
         server.die();
     }
 
