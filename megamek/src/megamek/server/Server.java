@@ -18225,7 +18225,7 @@ public class Server implements Runnable {
      * End-phase checks for laid explosives; check whether explosives are
      * touched off, or if we should report laying explosives
      */
-    void checkLayExplosives() { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public void checkLayExplosives() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         // Report continuing explosive work
         for (Entity e : gameserver.getGame().getEntitiesVector()) {
             if (!(e instanceof Infantry)) {
@@ -19508,7 +19508,7 @@ public class Server implements Runnable {
         }
     }
 
-    void resolveEmergencyCoolantSystem() { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public void resolveEmergencyCoolantSystem() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Entity e : gameserver.getGame().getEntitiesVector()) {
             if ((e instanceof Mech) && e.hasWorkingMisc(MiscType.F_EMERGENCY_COOLANT_SYSTEM)
                     && (e.heat > 13)) {
@@ -19535,7 +19535,7 @@ public class Server implements Runnable {
     /*
      * Resolve HarJel II/III repairs for Mechs so equipped.
      */
-    void resolveHarJelRepairs() { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public void resolveHarJelRepairs() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Report r;
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
             Entity entity = i.next();
@@ -20247,7 +20247,7 @@ public class Server implements Runnable {
      * Checks to see if any entities are underwater (or in vacuum) with damaged
      * life support. Called during the end phase.
      */
-    void checkForSuffocation() { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public void checkForSuffocation() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext();) {
             final Entity entity = i.next();
             if ((null == entity.getPosition()) || entity.isOffBoard()) {
@@ -20616,7 +20616,7 @@ public class Server implements Runnable {
         return vPhaseReport;
     }
 
-    Vector<Report> checkForTraitors() { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public Vector<Report> checkForTraitors() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Vector<Report> vFullReport = new Vector<>();
         // check for traitors
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
@@ -20648,7 +20648,7 @@ public class Server implements Runnable {
     /**
      * Resolves all built up control rolls. Used only during end phase
      */
-    Vector<Report> resolveControlRolls() { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public Vector<Report> resolveControlRolls() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Vector<Report> vFullReport = new Vector<>();
         vFullReport.add(new Report(5001, Report.PUBLIC));
         for (Iterator<Entity> i = gameserver.getGame().getEntities(); i.hasNext(); ) {
@@ -34380,7 +34380,7 @@ public class Server implements Runnable {
      * Add a whole lotta Reports to the players report queues as well as the
      * Master report queue vPhaseReport.
      */
-    void addReport(Vector<Report> reports) { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public void addReport(Vector<Report> reports) { //TODO: Switched from private to package-private, in next refactor move to GameServer
         vPhaseReport.addAll(reports);
     }
 
@@ -34389,7 +34389,7 @@ public class Server implements Runnable {
      * Master report queue vPhaseReport, indenting each report by the passed
      * value.
      */
-    private void addReport(Vector<Report> reports, int indents) {
+    public void addReport(Vector<Report> reports, int indents) {
         for (Report r : reports) {
             r.indent(indents);
             vPhaseReport.add(r);
@@ -35136,7 +35136,7 @@ public class Server implements Runnable {
     /**
      * Check to see if blowing sand caused damage to airborne VTOL/WIGEs
      */
-    Vector<Report> resolveBlowingSandDamage() { //TODO: Switched from private to package-private, in next refactor move to GameServer
+    public Vector<Report> resolveBlowingSandDamage() { //TODO: Switched from private to package-private, in next refactor move to GameServer
         Vector<Report> vFullReport = new Vector<>();
         vFullReport.add(new Report(5002, Report.PUBLIC));
         int damage_bonus = Math.max(0, gameserver.getGame().getPlanetaryConditions().getWindStrength()

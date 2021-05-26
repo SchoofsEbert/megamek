@@ -252,7 +252,8 @@ public class GameServer extends ServerRefactored {
         server.resetEntityPhase(phase);
         server.clearReports();
         server.resolveHeat();
-        checkGlobalDamage();
+        gamelogic.checkGlobalDamage();
+        server.send(server.createPlanetaryConditionsPacket());
 
         resolveDamage();
 
@@ -288,23 +289,6 @@ public class GameServer extends ServerRefactored {
         server.resolveMechWarriorPickUp();
         server.resolveVeeINarcPodRemoval();
         server.resolveFortify();
-    }
-
-    private void checkGlobalDamage() {
-        if (gamelogic.getGame().getPlanetaryConditions().isSandBlowing()
-                && (gamelogic.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
-            server.addReport(server.resolveBlowingSandDamage());
-        }
-        server.addReport(server.resolveControlRolls());
-        server.addReport(server.checkForTraitors());
-        // write End Phase header
-        server.addReport(new Report(5005, Report.PUBLIC));
-        server.checkLayExplosives();
-        server.resolveHarJelRepairs();
-        server.resolveEmergencyCoolantSystem();
-        server.checkForSuffocation();
-        gamelogic.getGame().getPlanetaryConditions().determineWind();
-        server.send(server.createPlanetaryConditionsPacket());
     }
 
     public void prepareForPhaseEndReport() {

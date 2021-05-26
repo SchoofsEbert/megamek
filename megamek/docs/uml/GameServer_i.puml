@@ -1,0 +1,24 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class GameServer {
+    -GameLogic
+    -Server
+    -logClientServerMismatch
+    -logVersionChecksumNull
+    -verifyVersion
+    +receivePlayerVersion(Server)
+    +receivePlayerName(Server)
+    -switchConnection
+    -sendPlayerMatchSetUp
+    -getPlayerConnectionDetails
+    +receivePlayerInfo(Server)
+    +prepareForPhaseVictory(Server+)
+    +prepareForPhaseEnd(Server+)
+    +endCurrentPhaseEnd(Server+)
+    -updateField()
+    -resolveDamage()
+    +endCurrentPhaseEndReport(Server+)
+}
+
+@enduml

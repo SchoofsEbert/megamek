@@ -1,0 +1,27 @@
+@startuml
+'https://plantuml.com/class-diagram
+class GameLogic{
+    -Game
+    -Server
+    +setGame()(Server)
+    +getGame()
+    +ghostPlayers()
+    -restoreWeaponTypes()
+    -reattachEntities()
+    -getNewColour()
+    +addNewPlayer()(Server)
+    +validatePlayerInfo()(Server)
+    +correctDupeName()(Server)
+    +victory()(Server)
+    -computeOpponentScores()
+    -updatePlayerScores()
+    +updatePlayerScores()
+    +endCurrentPhaseVictory()
+    +prepareEntitiesForVictory()
+    +getColorForPlayer()
+    +getGhostIdByName()
+    +makePlayerObserverIfNotLounge()
+    +checkGlobalDamage()
+}
+
+@enduml
