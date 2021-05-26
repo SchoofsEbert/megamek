@@ -56,7 +56,6 @@ import java.util.zip.GZIPOutputStream;
 import com.thoughtworks.xstream.XStream;
 
 import megamek.MegaMek;
-import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.*;
 import megamek.common.Building.BasementType;
 import megamek.common.Building.DemolitionCharge;
@@ -99,9 +98,6 @@ import megamek.common.actions.UnjamTurretAction;
 import megamek.common.actions.UnloadStrandedAction;
 import megamek.common.actions.WeaponAttackAction;
 import megamek.common.containers.PlayerIDandList;
-import megamek.common.event.GameListener;
-import megamek.common.event.GameVictoryEvent;
-import megamek.common.icons.Camouflage;
 import megamek.common.net.ConnectionFactory;
 import megamek.common.net.ConnectionListenerAdapter;
 import megamek.common.net.DisconnectedEvent;
@@ -167,7 +163,6 @@ import megamek.server.commands.TeamCommand;
 import megamek.server.commands.TraitorCommand;
 import megamek.server.commands.VictoryCommand;
 import megamek.server.commands.WhoCommand;
-import megamek.server.victory.VictoryResult;
 
 /**
  * @author Ben Mazur

@@ -221,7 +221,7 @@ public class GameLogic {
      * when there is only one player left with mechs or only one team. will also
      * add some reports to reporting
      */
-    public boolean victory() { //TODO INTEREST
+    public boolean victory() {
         VictoryResult vr = game.getVictory().checkForVictory(game, game.getVictoryContext());
         for (Report r : vr.getReports()) {
             // TODO this should obviously be the task of the reporter, once refactored

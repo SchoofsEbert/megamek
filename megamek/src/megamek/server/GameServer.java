@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public class GameServer extends ServerRefactored{
+public class GameServer extends ServerRefactored {
     private GameLogic gamelogic;
 
     //TODO, once refactoring is done, all connections with server should be removed, because the method calls to server are on their place
@@ -21,6 +21,7 @@ public class GameServer extends ServerRefactored{
     public GameServer(String password, int port, Server server) throws IOException {
         this(password, port, false, "", server);
     }
+
     public GameServer(String password, int port, boolean registerWithServerBrowser,
                       String metaServerUrl, Server server) throws IOException {
         this(password, port, registerWithServerBrowser, metaServerUrl);
@@ -37,7 +38,6 @@ public class GameServer extends ServerRefactored{
     /**
      * Construct a new GameHost and begin listening for incoming clients.
      *
-     *
      * @param password                  the <code>String</code> that is set as a password
      * @param port                      the <code>int</code> value that specifies the port that is
      *                                  used
@@ -45,7 +45,7 @@ public class GameServer extends ServerRefactored{
      *                                  with the master server browser on megamek.info
      */
     public GameServer(String password, int port, boolean registerWithServerBrowser,
-                            String metaServerUrl) throws IOException {
+                      String metaServerUrl) throws IOException {
         super(password, port, registerWithServerBrowser, metaServerUrl);
         // TODO IMPLEMENT
 
@@ -59,15 +59,11 @@ public class GameServer extends ServerRefactored{
         String serverChecksum = MegaMek.getMegaMekSHA256();
         StringBuilder buf = new StringBuilder();
         boolean correct = verifyVersion(version, clientChecksum, serverChecksum, buf);
-        // print a message indicating client doesn't have jar file
-        // Now, if we need to, send message!
         if (!correct) {
             IPlayer player = getPlayer(connId);
             if (null != player) {
                 //TODO this should be just sendServerChat once refactoring is done and the method is moved to ServerRefactored
-                server.sendServerChat("For " + player.getName() + " Server reports:"
-                        + System.lineSeparator()
-                        + buf.toString());
+                server.sendServerChat("For " + player.getName() + " Server reports:" + System.lineSeparator() + buf);
             }
         } else {
             MegaMek.getLogger().info("SUCCESS: Client/Server Version (" + version + ") and Checksum ("
@@ -78,12 +74,12 @@ public class GameServer extends ServerRefactored{
     private void logClientServerMismatch(String clientCode, String serverCode, String typeCode, StringBuilder buf) {
         buf.append("Client/Server ").append(typeCode).append(" mismatch. Server reports: ").append(serverCode)
                 .append(", Client reports: ").append(clientCode);
-        MegaMek.getLogger().error("Client/Server "+typeCode+" Mismatch -- Client: " + clientCode
-                + " Server: " + serverCode);
+        MegaMek.getLogger().error("Client/Server " + typeCode + " Mismatch -- Client: " + clientCode + " Server: "
+                + serverCode);
     }
 
 
-    private void logVersionChecksumNull(String version, StringBuilder buf, String kind) {
+    private void logVersionChecksumNull(StringBuilder buf, String kind) {
         buf.append(kind).append(" Checksum is null. ").append(kind).append("may not have a jar file");
         MegaMek.getLogger().info(kind + " does not have a jar file");
     }
@@ -98,19 +94,18 @@ public class GameServer extends ServerRefactored{
             if (!version.equals(MegaMek.VERSION)) {
                 buf.append(System.lineSeparator()).append(System.lineSeparator());
             }
-            logVersionChecksumNull(version, buf, "Client");
+            logVersionChecksumNull(buf, "Client");
             return false;
         } else if (serverChecksum == null) {
             if (!version.equals(MegaMek.VERSION)) {
                 buf.append(System.lineSeparator()).append(System.lineSeparator());
             }
-            logVersionChecksumNull(version, buf, "Server");
+            logVersionChecksumNull(buf, "Server");
             return false;
             // print message indicating a client/server checksum mismatch
         } else if (!clientChecksum.equals(serverChecksum)) {
             if (!version.equals(MegaMek.VERSION)) {
-                buf.append(System.lineSeparator());
-                buf.append(System.lineSeparator());
+                buf.append(System.lineSeparator()).append(System.lineSeparator());
             }
             logClientServerMismatch(clientChecksum, serverChecksum, "checksum", buf);
             return false;
@@ -137,11 +132,10 @@ public class GameServer extends ServerRefactored{
         // check if they're connecting with the same name as a ghost player
         int existingConnId = gamelogic.getGhostIdByName(name);
         boolean returning = existingConnId >= 0;
-        if(returning) {
+        if (returning) {
             connId = existingConnId;
             conn.setId(connId);
-        }
-        else {
+        } else {
             // Check to avoid duplicate names...
             name = gamelogic.correctDupeName(name);
             server.sendToPending(connId, new Packet(Packet.COMMAND_SERVER_CORRECT_NAME, name));
@@ -232,11 +226,11 @@ public class GameServer extends ServerRefactored{
         IPlayer gamePlayer = gamelogic.getGame().getPlayer(connId);
         if (null != gamePlayer) { //TODO INTER: ONLY GAME
             if (gamePlayer.getConstantInitBonus()
-                != player.getConstantInitBonus()) {
-            server.sendServerChat("Player " + gamePlayer.getName()
-                    + " changed their initiative bonus from "
-                    + gamePlayer.getConstantInitBonus()
-                    + " to " + player.getConstantInitBonus() + ".");
+                    != player.getConstantInitBonus()) {
+                server.sendServerChat("Player " + gamePlayer.getName()
+                        + " changed their initiative bonus from "
+                        + gamePlayer.getConstantInitBonus()
+                        + " to " + player.getConstantInitBonus() + ".");
             }
             gamePlayer.update(player);
         }
@@ -254,7 +248,7 @@ public class GameServer extends ServerRefactored{
         server.send(server.createEndOfGamePacket());
     }
 
-    public void prepareForPhaseEnd(IGame.Phase phase){
+    public void prepareForPhaseEnd(IGame.Phase phase) {
         server.resetEntityPhase(phase);
         server.clearReports();
         server.resolveHeat();
@@ -297,8 +291,8 @@ public class GameServer extends ServerRefactored{
     }
 
     private void checkGlobalDamage() {
-        if  (gamelogic.getGame().getPlanetaryConditions().isSandBlowing()
-                &&  (gamelogic.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
+        if (gamelogic.getGame().getPlanetaryConditions().isSandBlowing()
+                && (gamelogic.getGame().getPlanetaryConditions().getWindStrength() > PlanetaryConditions.WI_LIGHT_GALE)) {
             server.addReport(server.resolveBlowingSandDamage());
         }
         server.addReport(server.resolveControlRolls());
@@ -313,10 +307,10 @@ public class GameServer extends ServerRefactored{
         server.send(server.createPlanetaryConditionsPacket());
     }
 
-    public void prepareForPhaseEndReport(){
+    public void prepareForPhaseEndReport() {
         server.resetActivePlayersDone();
         server.sendReport();
-        if  (gamelogic.getGame().getOptions().booleanOption(OptionsConstants.BASE_PARANOID_AUTOSAVE)) {
+        if (gamelogic.getGame().getOptions().booleanOption(OptionsConstants.BASE_PARANOID_AUTOSAVE)) {
             server.autoSave();
         }
     }
@@ -327,7 +321,7 @@ public class GameServer extends ServerRefactored{
         server.resetGame();
     }
 
-    public void endCurrentPhaseEnd(){
+    public void endCurrentPhaseEnd() {
         // remove any entities that died in the heat/end phase before
         // checking for victory
         server.resetEntityPhase(IGame.Phase.PHASE_END);
@@ -354,7 +348,7 @@ public class GameServer extends ServerRefactored{
         server.decrementASEWTurns();
     }
 
-    public void endCurrentPhaseEndReport(){
+    public void endCurrentPhaseEndReport() {
         if (server.changePlayersTeam) {
             server.processTeamChange();
         }
@@ -367,6 +361,7 @@ public class GameServer extends ServerRefactored{
 
 
     ////////TODO once refactored, these shortcut methods should be deleted.
+
     /**
      * Shortcut to gamelogic.getGame().getPlayer(id)
      */
