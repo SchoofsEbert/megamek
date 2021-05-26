@@ -2,18 +2,14 @@ package megamek.server;
 
 import megamek.MegaMek;
 import megamek.common.*;
-import megamek.common.event.GameListener;
 import megamek.common.net.IConnection;
 import megamek.common.net.Packet;
 import megamek.common.options.OptionsConstants;
 import megamek.common.preference.PreferenceManager;
-import megamek.common.weapons.AttackHandler;
-import megamek.common.weapons.WeaponHandler;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.*;
 
 public class GameServer extends ServerRefactored{
     private GameLogic gamelogic;
@@ -130,7 +126,6 @@ public class GameServer extends ServerRefactored{
     void receivePlayerName(Packet packet, int connId) {
         final IConnection conn = server.getPendingConnection(connId);
         String name = (String) packet.getObject(0);
-        boolean returning = false;
 
         // this had better be from a pending connection
         if (conn == null) {
@@ -140,8 +135,8 @@ public class GameServer extends ServerRefactored{
         }
 
         // check if they're connecting with the same name as a ghost player
-        int existing_connId = gamelogic.getGhostConnIdByName(name);
-        returning = existing_connId >= 0;
+        int existing_connId = gamelogic.getGhostIdByName(name);
+        boolean returning = existing_connId >= 0;
         if(returning) {
             connId = existing_connId;
             conn.setId(connId);

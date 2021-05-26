@@ -157,7 +157,7 @@ public class GameLogic {
     /**
      * Validates the player info.
      */
-    public void validatePlayerInfo(int playerId) { //TODO INTEREST
+    public void validatePlayerInfo(int playerId) {
         final IPlayer player = game.getPlayer(playerId);
 
         if (player != null) {
@@ -264,45 +264,44 @@ public class GameLogic {
         return vr.victory();
     }
 
+    /*
+     * All other players are now computed as opponents for the losers. Should this only be the winner?
+     */
     private HashedMap computeOpponentScores(boolean teamwin) {
-        HashedMap opponent_scores = new HashedMap();
+        HashedMap opponentScores = new HashedMap();
 
         for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
             IPlayer player = i.nextElement();
-            int opponent_score = 0;
+            int opponentScore = 0;
             for (Enumeration<IPlayer> j = game.getPlayers(); j.hasMoreElements(); ) {
                 IPlayer opponent = j.nextElement();
-                if (teamwin) {
-                    if (opponent.getTeam() != player.getTeam()) {
-                        opponent_score += opponent.getScore().getTotalScore();
-                    }
+                if (teamwin && opponent.getTeam() != player.getTeam()) {
+                        opponentScore += opponent.getScore().getTotalScore();
                 } else if (opponent != player) {
-                    opponent_score += opponent.getScore().getTotalScore();
+                    opponentScore += opponent.getScore().getTotalScore();
                 }
             }
-            opponent_scores.put(player.getId(), opponent_score);
+            opponentScores.put(player.getId(), opponentScore);
         }
 
-        return opponent_scores;
+        return opponentScores;
     }
 
-    private void updatePlayerScores(HashedMap opponent_scores, int winner, boolean teamwin) {
+    private void updatePlayerScores(HashedMap opponentScores, int winner, boolean teamwin) {
         for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
             IPlayer player = i.nextElement();
+            int own_id;
             if (teamwin) {
-                if (winner == player.getTeam()) {
-                    player.getScore().win((Integer) opponent_scores.get(player.getId()));
-                } else {
-                    player.getScore().lose((Integer) opponent_scores.get(player.getId()));
-                }
+                own_id = player.getTeam();
             }
             else {
-                if (winner == player.getId()) {
-                    player.getScore().win((Integer) opponent_scores.get(player.getId()));
-                }
-                else {
-                    player.getScore().lose((Integer) opponent_scores.get(player.getId()));
-                }
+                own_id = player.getId();
+            }
+            if (winner == own_id) {
+                    player.getScore().win((Integer) opponentScores.get(player.getId()));
+            }
+            else {
+                player.getScore().lose((Integer) opponentScores.get(player.getId()));
             }
         }
     }
@@ -313,16 +312,16 @@ public class GameLogic {
         //Assure that the playerscores are only updated when in the victory phase.
         if (game.getPhase() == IGame.Phase.PHASE_VICTORY) {
             int wonTeam = game.getVictoryTeam();
-
             boolean teamwin = wonTeam != IPlayer.TEAM_NONE;
-            HashedMap opponent_scores = computeOpponentScores(teamwin);
+
+            HashedMap opponentScores = computeOpponentScores(teamwin);
 
             if (teamwin) {
-                updatePlayerScores(opponent_scores, wonTeam, true);
+                updatePlayerScores(opponentScores, wonTeam, true);
             }
             else {
                 int wonPlayer = game.getVictoryPlayerId();
-                updatePlayerScores(opponent_scores, wonPlayer, false);
+                updatePlayerScores(opponentScores, wonPlayer, false);
             }
 
         }
@@ -358,7 +357,7 @@ public class GameLogic {
      * @param name name of the ghost to search for
      * @return connID of ghost, if exists, otherwise -1
      */
-    public int getGhostConnIdByName(String name) {
+    public int getGhostIdByName(String name) {
         for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
             IPlayer player = i.nextElement();
             if (player.getName().equals(name)) {

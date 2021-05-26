@@ -267,20 +267,14 @@ public class ServerTest extends TestCase {
         Mockito.when(won.isDraw()).thenReturn(false);
         Mockito.when(won.victory()).thenReturn(true);
         Mockito.when(won.getWinningPlayer()).thenReturn(1);
-
-        Victory vic = Mockito.mock(Victory.class);
-        Mockito.when(vic.checkForVictory(game, game.getVictoryContext())).thenReturn(won);
-        Field victory = Game.class.getDeclaredField("victory");
-        victory.setAccessible(true);
-        victory.set(game, vic);
-        server.victory();
+        setVictoryResult(won);
 
         Method executePhase = Server.class.getDeclaredMethod("executePhase", IGame.Phase.class);
         executePhase.setAccessible(true);
         executePhase.invoke(server, IGame.Phase.PHASE_VICTORY);
 
         assertEquals(player.getScore().getTotalScore(), 866);
-        assertEquals(player2.getScore().getTotalScore(), 912);
+        assertEquals(player2.getScore().getTotalScore(), 712);
     }
 
     private void prepareForPhase(IGame.Phase phase) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
