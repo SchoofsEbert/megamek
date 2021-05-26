@@ -275,9 +275,7 @@ public class GameLogic {
             int opponentScore = 0;
             for (Enumeration<IPlayer> j = game.getPlayers(); j.hasMoreElements(); ) {
                 IPlayer opponent = j.nextElement();
-                if (teamwin && opponent.getTeam() != player.getTeam()) {
-                        opponentScore += opponent.getScore().getTotalScore();
-                } else if (opponent != player) {
+                if ((teamwin && opponent.getTeam() != player.getTeam()) || opponent != player) {
                     opponentScore += opponent.getScore().getTotalScore();
                 }
             }
@@ -290,14 +288,14 @@ public class GameLogic {
     private void updatePlayerScores(HashedMap opponentScores, int winner, boolean teamwin) {
         for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
             IPlayer player = i.nextElement();
-            int own_id;
+            int ownId;
             if (teamwin) {
-                own_id = player.getTeam();
+                ownId = player.getTeam();
             }
             else {
-                own_id = player.getId();
+                ownId = player.getId();
             }
-            if (winner == own_id) {
+            if (winner == ownId) {
                     player.getScore().win((Integer) opponentScores.get(player.getId()));
             }
             else {
@@ -332,7 +330,7 @@ public class GameLogic {
         game.processGameEvent(gve);
     }
 
-    public void PrepareEntitiesForVictory() {
+    public void prepareEntitiesForVictory() {
         for (Iterator<Entity> ents = game.getEntities(); ents.hasNext(); ) {
             Entity entity = ents.next();
             if ((entity.isFighter()) && !(entity instanceof FighterSquadron)) {
@@ -360,18 +358,16 @@ public class GameLogic {
     public int getGhostIdByName(String name) {
         for (Enumeration<IPlayer> i = game.getPlayers(); i.hasMoreElements(); ) {
             IPlayer player = i.nextElement();
-            if (player.getName().equals(name)) {
-                if (player.isGhost()) {
-                    player.setGhost(false);
-                    return player.getId();
-                }
+            if (player.getName().equals(name) &&player.isGhost()) {
+                player.setGhost(false);
+                return player.getId();
             }
         }
         return -1;
     }
 
-    public void makePlayerObserverIfNotLounge(int Id) {
-        IPlayer player = game.getPlayer(Id);
+    public void makePlayerObserverIfNotLounge(int id) {
+        IPlayer player = game.getPlayer(id);
         if ( (game.getPhase() != IGame.Phase.PHASE_LOUNGE) && (null != player)
                 &&  (game.getEntitiesOwnedBy(player) < 1)) {
             player.setObserver(true);

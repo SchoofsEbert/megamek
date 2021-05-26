@@ -135,10 +135,10 @@ public class GameServer extends ServerRefactored{
         }
 
         // check if they're connecting with the same name as a ghost player
-        int existing_connId = gamelogic.getGhostIdByName(name);
-        boolean returning = existing_connId >= 0;
+        int existingConnId = gamelogic.getGhostIdByName(name);
+        boolean returning = existingConnId >= 0;
         if(returning) {
-            connId = existing_connId;
+            connId = existingConnId;
             conn.setId(connId);
         }
         else {
@@ -248,7 +248,7 @@ public class GameServer extends ServerRefactored{
         server.clearReports();
         server.prepareVictoryReport();
         gamelogic.getGame().addReports(server.vPhaseReport);
-        gamelogic.PrepareEntitiesForVictory();
+        gamelogic.prepareEntitiesForVictory();
         server.send(server.createFullEntitiesPacket());
         server.send(server.createReportPacket(null));
         server.send(server.createEndOfGamePacket());
