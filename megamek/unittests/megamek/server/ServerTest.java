@@ -373,21 +373,6 @@ public class ServerTest extends TestCase {
 
     public void testEndCurrentPhaseEnd2() throws NoSuchMethodException, IllegalAccessException,
             InvocationTargetException, NullPointerException, NoSuchFieldException{
-        IPlayer player2 = new Player(1, "Opponent");
-        game.addPlayer(1, player2);
-
-        VictoryResult won = Mockito.mock(VictoryResult.class);
-        Mockito.when(won.victory()).thenReturn(true);
-        Mockito.when(won.getWinningPlayer()).thenReturn(1);
-        setVictoryResult(won);
-
-        endCurrentPhase(IGame.Phase.PHASE_END);
-
-        assertEquals(IGame.Phase.PHASE_VICTORY, game.getPhase());
-    }
-
-    public void testEndCurrentPhaseEnd3() throws NoSuchMethodException, IllegalAccessException,
-            InvocationTargetException, NullPointerException, NoSuchFieldException{
         VictoryResult won = Mockito.mock(VictoryResult.class);
         Mockito.when(won.victory()).thenReturn(false);
         setVictoryResult(won);
