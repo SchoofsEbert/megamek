@@ -161,7 +161,7 @@ public class GameServer extends ServerRefactored{
         }
 
         // if it is not the lounge phase, this player becomes an observer
-        makePlayerObserverIfNotLounge(connId);
+        gamelogic.makePlayerObserverIfNotLounge(connId);
 
         sendPlayerMatchSetUp(connId);
 
@@ -185,13 +185,6 @@ public class GameServer extends ServerRefactored{
 
     }
 
-    private void makePlayerObserverIfNotLounge(int connId) {
-        IPlayer player = getPlayer(connId);
-        if ( (gamelogic.getGame().getPhase() != IGame.Phase.PHASE_LOUNGE) && (null != player)
-                &&  (gamelogic.getGame().getEntitiesOwnedBy(player) < 1)) {
-            player.setObserver(true);
-        }
-    }
 
     private void switchConnection(IConnection conn) {
         server.connectionsPending.removeElement(conn);

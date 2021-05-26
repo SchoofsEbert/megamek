@@ -370,6 +370,14 @@ public class GameLogic {
         }
         return -1;
     }
+
+    public void makePlayerObserverIfNotLounge(int Id) {
+        IPlayer player = game.getPlayer(Id);
+        if ( (game.getPhase() != IGame.Phase.PHASE_LOUNGE) && (null != player)
+                &&  (game.getEntitiesOwnedBy(player) < 1)) {
+            player.setObserver(true);
+        }
+    }
 }
 
 
