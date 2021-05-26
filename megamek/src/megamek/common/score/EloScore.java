@@ -1,8 +1,8 @@
-package megamek.common;
+package megamek.common.score;
 
 import java.io.Serializable;
 
-public class EloScore implements Serializable {
+public class EloScore implements IScore, Serializable {
     private static final long serialVersionUID = 2405172041950251807L;
 
     private int win_lose;

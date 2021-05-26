@@ -3,6 +3,7 @@ package megamek.common;
 import junit.framework.TestCase;
 import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.icons.Camouflage;
+import megamek.common.score.EloScore;
 import megamek.server.Server;
 import megamek.server.victory.Victory;
 import megamek.server.victory.VictoryResult;

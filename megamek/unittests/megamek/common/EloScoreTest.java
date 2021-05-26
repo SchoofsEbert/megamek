@@ -1,6 +1,7 @@
 package megamek.common;
 
 import junit.framework.TestCase;
+import megamek.common.score.EloScore;
 
 public class EloScoreTest extends TestCase {
     private EloScore score;

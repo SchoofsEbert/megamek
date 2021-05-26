@@ -15,6 +15,7 @@ package megamek.common;
 
 import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.icons.Camouflage;
+import megamek.common.score.IScore;
 
 import java.util.Vector;
 
@@ -203,10 +204,10 @@ public interface IPlayer extends ITurnOrdered {
     /**
      * Get the score of a player
      */
-    EloScore getScore();
+    IScore getScore();
 
     /**
      * Get the score of a player
      */
-    void setScore(EloScore score);
+    void setScore(IScore score);
 }

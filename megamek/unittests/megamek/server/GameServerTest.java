@@ -10,6 +10,7 @@ import megamek.common.logging.MMLogger;
 import megamek.common.net.ConnectionFactory;
 import megamek.common.net.IConnection;
 import megamek.common.net.Packet;
+import megamek.common.score.EloScore;
 import org.mockito.Mockito;
 
 import java.lang.reflect.Field;

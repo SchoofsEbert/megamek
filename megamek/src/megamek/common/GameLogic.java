@@ -48,8 +48,6 @@ public class GameLogic {
             getGame().addGameListener(listener);
         }
 
-
-
         // reattach the transient fields and ghost the players
         reattachEntities();
         game.setOutOfGameEntitiesVector(game.getOutOfGameEntitiesVector());

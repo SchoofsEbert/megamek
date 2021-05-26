@@ -10,6 +10,7 @@ import megamek.common.logging.MMLogger;
 import megamek.common.net.ConnectionFactory;
 import megamek.common.net.IConnection;
 import megamek.common.net.Packet;
+import megamek.common.score.EloScore;
 import megamek.server.victory.Victory;
 import megamek.server.victory.VictoryResult;
 import org.mockito.Mockito;

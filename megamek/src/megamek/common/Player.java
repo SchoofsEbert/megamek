@@ -22,6 +22,8 @@ import megamek.client.ui.swing.util.PlayerColour;
 import megamek.common.event.GamePlayerChangeEvent;
 import megamek.common.icons.Camouflage;
 import megamek.common.options.OptionsConstants;
+import megamek.common.score.EloScore;
+import megamek.common.score.IScore;
 
 /**
  * Represents a player in the game.
@@ -71,7 +73,7 @@ public final class Player extends TurnOrdered implements IPlayer {
 
     private boolean admitsDefeat = false;
 
-    private EloScore score = new EloScore();
+    private IScore score = new EloScore();
     
     /**
      * Boolean that keeps track of whether a player has accepted another 
@@ -605,12 +607,12 @@ public final class Player extends TurnOrdered implements IPlayer {
     }
 
     @Override
-    public EloScore getScore() {
+    public IScore getScore() {
         return score;
     }
 
     @Override
-    public void setScore(EloScore score) {
+    public void setScore(IScore score) {
         this.score = score;
     }
 }
